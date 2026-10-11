@@ -1,0 +1,211 @@
+/* ==========================================================================
+   UNEMI Guide AI · dashboard.css
+   Pantallas "Inicio" (bienvenida y ranking de carreras) e "Historial".
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Bienvenida
+   -------------------------------------------------------------------------- */
+.bienvenida {
+    position: relative;
+    overflow: hidden;
+    border: none;
+    background: linear-gradient(150deg, var(--color-marca) 0%, var(--color-marca-oscuro) 100%);
+    color: #FFFFFF;
+}
+
+/* Resplandor naranja decorativo */
+.bienvenida::after {
+    content: "";
+    position: absolute;
+    top: -80px;
+    right: -80px;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 111, 0, 0.5) 0%, rgba(255, 111, 0, 0) 70%);
+}
+
+.bienvenida .etiqueta {
+    color: var(--color-secundario);
+}
+
+.bienvenida .pantalla__titulo {
+    color: #FFFFFF;
+}
+
+.bienvenida .pantalla__texto {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.bienvenida .boton--primario {
+    background-color: var(--color-secundario);
+}
+
+.bienvenida .boton--primario:hover {
+    background-color: var(--color-secundario-oscuro);
+}
+
+.bienvenida .boton--contorno {
+    border-color: #FFFFFF;
+    color: #FFFFFF;
+}
+
+.bienvenida .boton--contorno:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Pasos numerados */
+.pasos {
+    display: grid;
+    gap: 8px;
+    margin-top: 24px;
+    counter-reset: paso;
+}
+
+.pasos__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    counter-increment: paso;
+}
+
+.pasos__item::before {
+    content: counter(paso);
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.15);
+    font-weight: 700;
+    font-size: 0.8rem;
+}
+
+/* --------------------------------------------------------------------------
+   Ranking de carreras
+   -------------------------------------------------------------------------- */
+.ranking__lista {
+    display: grid;
+    gap: 12px;
+}
+
+.ranking__item {
+    display: grid;
+    gap: 6px;
+}
+
+.ranking__fila {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+}
+
+.ranking__posicion {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: var(--color-fondo);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--color-texto-2);
+}
+
+.ranking__item--lider .ranking__posicion {
+    background-color: var(--color-secundario);
+    color: #FFFFFF;
+}
+
+.ranking__carrera {
+    font-weight: 600;
+}
+
+.ranking__total {
+    font-size: 0.8rem;
+    color: var(--color-texto-2);
+    white-space: nowrap;
+}
+
+/* Barra proporcional (<meter> nativo) */
+.ranking__barra {
+    width: 100%;
+    height: 8px;
+    border: none;
+    border-radius: 999px;
+    background: var(--color-borde);
+    overflow: hidden;
+}
+
+.ranking__barra::-webkit-meter-bar {
+    border: none;
+    border-radius: 999px;
+    background: var(--color-borde);
+}
+
+.ranking__barra::-webkit-meter-optimum-value {
+    border-radius: 999px;
+    background: var(--color-marca);
+}
+
+.ranking__item--lider .ranking__barra::-webkit-meter-optimum-value {
+    background: var(--color-secundario);
+}
+
+.ranking__barra::-moz-meter-bar {
+    border-radius: 999px;
+    background: var(--color-marca);
+}
+
+.ranking__item--lider .ranking__barra::-moz-meter-bar {
+    background: var(--color-secundario);
+}
+
+.ranking__vacio {
+    font-size: 0.9rem;
+    color: var(--color-texto-2);
+}
+
+/* --------------------------------------------------------------------------
+   Historial
+   -------------------------------------------------------------------------- */
+.historial {
+    display: grid;
+    gap: 10px;
+}
+
+.historial__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio);
+    background-color: var(--color-superficie);
+    box-shadow: var(--sombra);
+}
+
+.historial__datos {
+    display: grid;
+    min-width: 0;
+}
+
+.historial__ruta {
+    font-weight: 600;
+}
+
+.historial__meta {
+    font-size: 0.8rem;
+    color: var(--color-texto-2);
+}
+
+@media (min-width: 900px) {
+    .historial {
+        grid-template-columns: 1fr 1fr;
+    }
+}

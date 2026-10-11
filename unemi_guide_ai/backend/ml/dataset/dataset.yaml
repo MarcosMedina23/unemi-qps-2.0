@@ -1,0 +1,25 @@
+# backend/ml/dataset/dataset.yaml
+# Configuración del dataset de YOLOv8 (detección de OBJETOS del campus).
+#
+# Estructura esperada (formato YOLO: una imagen y un .txt de etiquetas por foto):
+#   ml/dataset/images/train/*.jpg     ml/dataset/labels/train/*.txt
+#   ml/dataset/images/val/*.jpg       ml/dataset/labels/val/*.txt
+#
+# Para etiquetar las fotos se puede usar Roboflow o LabelImg (exportar en formato YOLO).
+# Si cambias las clases, el clasificador de zonas debe volver a entrenarse.
+
+path: .            # Relativo a este archivo
+train: images/train
+val: images/val
+
+names:
+  0: letrero
+  1: puerta
+  2: escalera
+  3: ventana
+  4: arbol
+  5: banca
+  6: logo_unemi
+  7: rampa
+  8: estanteria
+  9: computadora

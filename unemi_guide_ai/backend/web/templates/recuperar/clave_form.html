@@ -1,0 +1,41 @@
+{% load static %}<!DOCTYPE html>
+{% comment %} Paso 1 de recuperar contraseña: pedir el correo. Vista: PasswordResetView. {% endcomment %}
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar contraseña | UNEMI Guide AI</title>
+    <link rel="icon" type="image/png" href="{% static 'web/img/logo.png' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+    <link rel="stylesheet" href="{% static 'web/css/login.css' %}?v={{ version }}">
+</head>
+<body class="acceso">
+    <main class="acceso__contenedor">
+        <section class="acceso__tarjeta" aria-labelledby="titulo-acceso">
+            <div class="acceso__marca">
+                <img class="acceso__logo" src="{% static 'web/img/logo.png' %}" alt="" width="56" height="56">
+                <span class="acceso__nombre">UNEMI Guide <span class="acceso__acento">AI</span></span>
+            </div>
+
+            <h1 class="acceso__titulo" id="titulo-acceso">Recuperar contraseña</h1>
+            <p class="acceso__texto">Escribe el correo de tu cuenta y te enviaremos un enlace para crear una nueva contraseña.</p>
+
+            <form class="formulario" method="post" novalidate>
+                {% csrf_token %}
+                <div class="campo{% if form.email.errors %} campo--invalido{% endif %}">
+                    <label class="campo__etiqueta" for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+                    {{ form.email }}
+                    {% for error in form.email.errors %}<p class="campo__error">{{ error }}</p>{% endfor %}
+                </div>
+                <button class="boton boton--primario boton--bloque" type="submit">Enviar enlace</button>
+            </form>
+
+            <nav class="acceso__enlaces" aria-label="Volver">
+                <a class="acceso__enlace" href="{% url 'login' %}">← Volver a iniciar sesión</a>
+            </nav>
+        </section>
+    </main>
+</body>
+</html>

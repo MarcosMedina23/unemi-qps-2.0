@@ -1,0 +1,117 @@
+/* ==========================================================================
+   UNEMI Guide AI · simulacion.css
+   Pantalla "Recorrido 3D" (Three.js).
+   ========================================================================== */
+
+.escena {
+    position: relative;
+    height: min(62vh, 560px);
+    min-height: 320px;
+    overflow: hidden;
+    border-radius: var(--radio-grande);
+    background: linear-gradient(180deg, #CFE0F4 0%, #EAF1FA 100%);
+    box-shadow: var(--sombra-alta);
+}
+
+.escena__lienzo {
+    position: absolute;
+    inset: 0;
+    cursor: grab;
+}
+
+.escena__lienzo:active {
+    cursor: grabbing;
+}
+
+/* El <canvas> de Three.js ocupa todo el contenedor (sin estilos en línea) */
+.escena__lienzo canvas {
+    width: 100%;
+    height: 100%;
+}
+
+/* Indicación del tramo actual, flotando arriba */
+.escena__indicacion {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    max-width: calc(100% - 24px);
+    padding: 8px 18px;
+    border-radius: var(--radio);
+    background-color: rgba(13, 71, 161, 0.92);
+    color: #FFFFFF;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: center;
+    box-shadow: var(--sombra);
+    transform: translateX(-50%);
+}
+
+.escena__indicacion:empty {
+    display: none;
+}
+
+/* Contador de FPS (meta: 30 o más). Verde si cumple, rojo si no. */
+.escena__fps {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background-color: rgba(46, 125, 50, 0.9);
+    color: #FFFFFF;
+    font-family: var(--fuente-titulos);
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.escena__fps:empty {
+    display: none;
+}
+
+.escena__fps--bajo {
+    background-color: rgba(198, 40, 40, 0.9);
+}
+
+.escena__error {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    text-align: center;
+    color: var(--color-texto-2);
+}
+
+/* Barra de progreso del recorrido */
+.escena__progreso {
+    width: 100%;
+    height: 8px;
+    margin-top: 14px;
+    border: none;
+    border-radius: 999px;
+    overflow: hidden;
+    appearance: none;
+    background-color: var(--color-borde);
+}
+
+.escena__progreso::-webkit-progress-bar {
+    background-color: var(--color-borde);
+}
+
+.escena__progreso::-webkit-progress-value {
+    background-color: var(--color-secundario);
+}
+
+.escena__progreso::-moz-progress-bar {
+    background-color: var(--color-secundario);
+}
+
+.acciones--centradas .boton {
+    flex: 1 1 140px;
+}
+
+@media (min-width: 900px) {
+    .acciones--centradas .boton {
+        flex: 0 0 auto;
+    }
+}

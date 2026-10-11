@@ -1,0 +1,63 @@
+{% load static %}<!DOCTYPE html>
+{% comment %}
+    Inicio de sesión. Vista: django.contrib.auth.views.LoginView (web/urls.py).
+    No existe "Crea tu cuenta": las cuentas las crea el administrador.
+{% endcomment %}
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0D47A1">
+    <title>Iniciar sesión | UNEMI Guide AI</title>
+    <link rel="icon" type="image/png" href="{% static 'web/img/logo.png' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+    <link rel="stylesheet" href="{% static 'web/css/login.css' %}?v={{ version }}">
+</head>
+<body class="acceso">
+    <main class="acceso__contenedor">
+        <section class="acceso__tarjeta" aria-labelledby="titulo-acceso">
+            <div class="acceso__marca">
+                <img class="acceso__logo" src="{% static 'web/img/logo.png' %}" alt="" width="56" height="56">
+                <span class="acceso__nombre">UNEMI Guide <span class="acceso__acento">AI</span></span>
+            </div>
+
+            <h1 class="acceso__titulo" id="titulo-acceso">Iniciar sesión</h1>
+            <p class="acceso__texto">Ingresa con el usuario que te entregó la universidad.</p>
+
+            <form class="formulario" method="post" action="{% url 'login' %}" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ next }}">
+
+                {% for error in form.non_field_errors %}
+                    <p class="alerta alerta--error">{{ error }}</p>
+                {% endfor %}
+
+                <div class="campo{% if form.username.errors %} campo--invalido{% endif %}">
+                    <label class="campo__etiqueta" for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
+                    {{ form.username }}
+                    {% for error in form.username.errors %}<p class="campo__error">{{ error }}</p>{% endfor %}
+                </div>
+
+                <div class="campo{% if form.password.errors %} campo--invalido{% endif %}">
+                    <label class="campo__etiqueta" for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>
+                    {{ form.password }}
+                    {% for error in form.password.errors %}<p class="campo__error">{{ error }}</p>{% endfor %}
+                </div>
+
+                <button class="boton boton--primario boton--bloque" type="submit">Ingresar</button>
+            </form>
+
+            <nav class="acceso__enlaces" aria-label="Recuperar cuenta">
+                <a class="acceso__enlace" href="{% url 'recuperar' %}">¿Olvidaste tu contraseña?</a>
+                <a class="acceso__enlace" href="{% url 'recuperar_usuario' %}">¿Olvidaste tu usuario?</a>
+            </nav>
+            <p class="acceso__nota">¿No tienes cuenta? Solicítala en la administración de tu facultad.</p>
+        </section>
+        <p class="acceso__pie">Universidad Estatal de Milagro · Construcción de Software</p>
+    </main>
+
+    <script src="{% static 'web/js/password.js' %}?v={{ version }}" defer></script>
+</body>
+</html>

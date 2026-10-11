@@ -1,0 +1,125 @@
+/* ==========================================================================
+   UNEMI Guide AI · camera.css
+   Pantallas "Tomar o subir foto" y "Zona detectada".
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Visor de la cámara
+   -------------------------------------------------------------------------- */
+.visor {
+    position: relative;
+    display: grid;
+    place-items: center;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: var(--radio-grande);
+    background-color: #10203A;
+    box-shadow: var(--sombra-alta);
+}
+
+.visor__video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.visor__aviso {
+    max-width: 320px;
+    padding: 24px;
+    color: rgba(255, 255, 255, 0.9);
+    text-align: center;
+}
+
+/* Esquinas guía para encuadrar la fachada */
+.visor__marco {
+    position: absolute;
+    inset: 12%;
+    border: 3px solid rgba(255, 255, 255, 0.7);
+    border-radius: var(--radio);
+    pointer-events: none;
+}
+
+.camara-controles {
+    display: grid;
+    gap: 12px;
+}
+
+/* --------------------------------------------------------------------------
+   Zona detectada
+   -------------------------------------------------------------------------- */
+.foto-resultado {
+    position: relative;
+}
+
+.foto-resultado__imagen {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: var(--radio-grande);
+    background-color: var(--color-borde);
+    box-shadow: var(--sombra);
+}
+
+.foto-resultado .semaforo {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    box-shadow: var(--sombra);
+}
+
+.zona-detectada {
+    display: grid;
+    gap: 14px;
+}
+
+.zona-detectada__mensaje {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+/* Barra de confianza (<meter> nativo) */
+.confianza__fila {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+    font-size: 0.85rem;
+}
+
+.confianza__etiqueta {
+    color: var(--color-texto-2);
+}
+
+.confianza__valor {
+    font-weight: 700;
+}
+
+.confianza__barra {
+    width: 100%;
+    height: 10px;
+    border: none;
+    border-radius: 999px;
+    background: var(--color-borde);
+    overflow: hidden;
+}
+
+.confianza__barra::-webkit-meter-bar {
+    border: none;
+    border-radius: 999px;
+    background: var(--color-borde);
+}
+
+.confianza__barra::-webkit-meter-optimum-value {
+    background: var(--color-verde);
+}
+
+.confianza__barra::-webkit-meter-suboptimum-value {
+    background: var(--color-amarillo);
+}
+
+.confianza__barra::-webkit-meter-even-less-good-value {
+    background: var(--color-rojo);
+}
+
+.confianza__barra::-moz-meter-bar {
+    background: var(--color-verde);
+}

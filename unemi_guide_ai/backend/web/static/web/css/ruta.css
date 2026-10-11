@@ -1,0 +1,273 @@
+/* ==========================================================================
+   UNEMI Guide AI · ruta.css
+   Pantallas "Lista de destinos" y "Ruta calculada" (resumen, pasos y mapa).
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Buscador y filtros
+   -------------------------------------------------------------------------- */
+.buscador__campo {
+    width: 100%;
+    min-height: 48px;
+    padding: 10px 16px;
+    border: 2px solid var(--color-borde);
+    border-radius: var(--radio);
+    background-color: var(--color-superficie);
+    transition: border-color var(--transicion);
+}
+
+.buscador__campo:focus {
+    outline: none;
+    border-color: var(--color-marca);
+}
+
+.filtros {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 14px 0 18px;
+}
+
+.filtros__boton {
+    min-height: 36px;
+    padding: 6px 16px;
+    border: 1px solid var(--color-borde);
+    border-radius: 999px;
+    background-color: var(--color-superficie);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-texto-2);
+    cursor: pointer;
+    transition: all var(--transicion);
+}
+
+.filtros__boton:hover {
+    border-color: var(--color-marca);
+    color: var(--color-marca);
+}
+
+.filtros__boton--activo {
+    border-color: var(--color-marca);
+    background-color: var(--color-marca);
+    color: #FFFFFF;
+}
+
+.filtros__boton--activo:hover {
+    color: #FFFFFF;
+}
+
+/* --------------------------------------------------------------------------
+   Lista de destinos
+   -------------------------------------------------------------------------- */
+.destinos {
+    display: grid;
+    gap: 10px;
+}
+
+.destino {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio);
+    background-color: var(--color-superficie);
+    box-shadow: var(--sombra);
+}
+
+.destino__icono {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radio-chico);
+    background-color: var(--color-marca-claro);
+}
+
+/* Emoji según el tipo de destino */
+.destino__icono::before {
+    display: grid;
+    place-items: center;
+    height: 100%;
+    font-size: 1.3rem;
+}
+
+.destino__icono--aula::before {
+    content: "🏫";
+}
+
+.destino__icono--laboratorio::before {
+    content: "💻";
+}
+
+.destino__icono--biblioteca::before {
+    content: "📚";
+}
+
+.destino__icono--oficina::before {
+    content: "🏛️";
+}
+
+.destino__datos {
+    display: grid;
+    flex: 1;
+    min-width: 0;
+}
+
+.destino__nombre {
+    font-weight: 600;
+}
+
+.destino__meta {
+    font-size: 0.8rem;
+    color: var(--color-texto-2);
+}
+
+/* --------------------------------------------------------------------------
+   Resumen de la ruta
+   -------------------------------------------------------------------------- */
+.resumen {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.resumen__item {
+    padding: 10px 12px;
+    border-radius: var(--radio-chico);
+    background-color: var(--color-fondo);
+}
+
+.resumen__etiqueta {
+    font-size: 0.75rem;
+    color: var(--color-texto-2);
+}
+
+.resumen__valor {
+    font-family: var(--fuente-titulos);
+    font-weight: 700;
+    color: var(--color-marca);
+}
+
+/* --------------------------------------------------------------------------
+   Indicaciones paso a paso
+   -------------------------------------------------------------------------- */
+.indicaciones {
+    display: grid;
+    gap: 8px;
+    margin: 18px 0;
+    counter-reset: indicacion;
+}
+
+.indicaciones__paso {
+    position: relative;
+    padding: 10px 12px 10px 46px;
+    border-radius: var(--radio-chico);
+    background-color: var(--color-fondo);
+    font-size: 0.9rem;
+    counter-increment: indicacion;
+}
+
+.indicaciones__paso::before {
+    content: counter(indicacion);
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background-color: var(--color-marca);
+    color: #FFFFFF;
+    font-size: 0.75rem;
+    font-weight: 700;
+    transform: translateY(-50%);
+}
+
+.indicaciones__paso:last-child {
+    background-color: var(--color-verde-claro);
+    font-weight: 600;
+}
+
+.indicaciones__paso:last-child::before {
+    content: "✓";
+    background-color: var(--color-verde);
+}
+
+/* --------------------------------------------------------------------------
+   Mapa SVG (lo dibuja ruta.js con datos de Python)
+   -------------------------------------------------------------------------- */
+.mapa__lienzo {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: var(--radio);
+    background-color: #EEF3EA;
+}
+
+.mapa__ruta {
+    fill: none;
+    stroke: var(--color-secundario);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.mapa__zona {
+    fill: var(--color-marca);
+    stroke: #FFFFFF;
+}
+
+.mapa__zona--origen {
+    fill: var(--color-verde);
+}
+
+.mapa__zona--destino {
+    fill: var(--color-secundario);
+}
+
+.mapa__meta {
+    fill: var(--color-secundario);
+    stroke: #FFFFFF;
+}
+
+.mapa__texto {
+    font-family: var(--fuente-cuerpo);
+    font-weight: 600;
+    fill: var(--color-texto);
+    text-anchor: middle;
+}
+
+.mapa__leyenda {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 10px;
+    font-size: 0.8rem;
+    color: var(--color-texto-2);
+}
+
+.mapa__clave {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.mapa__clave::before {
+    content: "";
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.mapa__clave--origen::before {
+    background-color: var(--color-verde);
+}
+
+.mapa__clave--destino::before {
+    background-color: var(--color-secundario);
+}
+
+.mapa__clave--ruta::before {
+    height: 4px;
+    border-radius: 2px;
+    background-color: var(--color-secundario);
+}

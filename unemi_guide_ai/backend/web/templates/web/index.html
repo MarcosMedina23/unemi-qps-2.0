@@ -1,0 +1,309 @@
+{% load static %}<!DOCTYPE html>
+{% comment %}
+    UNEMI Guide AI · Página única del estudiante.
+    Vista: web.views.InicioView (requiere sesión).
+
+    Contiene todas las pantallas como <section data-pantalla="...">.
+    app.js muestra una a la vez. Los datos llegan desde /api con fetch
+    (api.js). No hay estilos ni scripts embebidos: todo está en
+    static/web/css y static/web/js.
+{% endcomment %}
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0D47A1">
+    <title>UNEMI Guide AI</title>
+    <link rel="icon" type="image/png" href="{% static 'web/img/logo.png' %}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+
+    <!-- ?v= evita que el navegador use una versión vieja guardada en caché -->
+    <link rel="stylesheet" href="{% static 'web/css/app.css' %}?v={{ version }}">
+    <link rel="stylesheet" href="{% static 'web/css/dashboard.css' %}?v={{ version }}">
+    <link rel="stylesheet" href="{% static 'web/css/camera.css' %}?v={{ version }}">
+    <link rel="stylesheet" href="{% static 'web/css/ruta.css' %}?v={{ version }}">
+    <link rel="stylesheet" href="{% static 'web/css/simulacion.css' %}?v={{ version }}">
+</head>
+<body class="app">
+    <a class="saltar" href="#contenido">Saltar al contenido</a>
+
+    <!-- ===================== Barra superior ===================== -->
+    <header class="barra">
+        <div class="barra__contenido">
+            <a class="barra__marca" href="#inicio">
+                <img class="barra__logo" src="{% static 'web/img/logo.png' %}" alt="" width="36" height="36">
+                <span>UNEMI Guide <span class="barra__acento">AI</span></span>
+            </a>
+
+            <!-- En celular esta navegación se ubica abajo (ver app.css) -->
+            <nav class="navegacion" aria-label="Navegación principal">
+                <ul class="navegacion__lista">
+                    <li>
+                        <a class="navegacion__enlace" href="#inicio" data-nav="inicio">
+                            <svg class="navegacion__icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>
+                            <span class="navegacion__texto">Inicio</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="navegacion__enlace" href="#camara" data-nav="camara">
+                            <svg class="navegacion__icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg>
+                            <span class="navegacion__texto">¿Dónde estoy?</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="navegacion__enlace" href="#destinos" data-nav="destinos">
+                            <svg class="navegacion__icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s7-6.1 7-12a7 7 0 0 0-14 0c0 5.9 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>
+                            <span class="navegacion__texto">Destinos</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="navegacion__enlace" href="#ruta" data-nav="ruta">
+                            <svg class="navegacion__icono" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/><path d="M8.5 18H15a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h6.5"/></svg>
+                            <span class="navegacion__texto">Mi ruta</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="navegacion__enlace" href="#historial" data-nav="historial">
+                            <svg class="navegacion__icono" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                            <span class="navegacion__texto">Historial</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="barra__usuario">
+                <span class="barra__nombre" title="{{ user.get_full_name|default:user.username }}">{{ user.nombre_para_mostrar }}</span>
+                <form class="barra__salir" method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button class="boton boton--claro boton--pequeno" type="submit">Salir</button>
+                </form>
+            </div>
+        </div>
+    </header>
+
+    <main class="contenedor" id="contenido" tabindex="-1">
+
+        <!-- ===================== 1. Inicio ===================== -->
+        <section class="pantalla" data-pantalla="inicio" aria-labelledby="titulo-inicio">
+            <div class="pantalla__columnas">
+                <article class="tarjeta bienvenida">
+                    <p class="etiqueta">Tu guía en el campus</p>
+                    <h1 class="pantalla__titulo" id="titulo-inicio">Hola, {{ user.nombre_para_mostrar }}</h1>
+                    <p class="pantalla__texto">¿No sabes dónde estás? Toma una foto de tu entorno y te llevamos por el camino más corto.</p>
+                    <div class="acciones">
+                        <a class="boton boton--primario boton--grande" href="#camara">¿Dónde estoy?</a>
+                        <a class="boton boton--contorno boton--grande" href="#historial">Ver mi historial</a>
+                    </div>
+                    <ol class="pasos">
+                        <li class="pasos__item">Toma una foto</li>
+                        <li class="pasos__item">Elige tu destino</li>
+                        <li class="pasos__item">Sigue la ruta en 3D</li>
+                    </ol>
+                </article>
+
+                <aside class="tarjeta ranking" aria-labelledby="titulo-ranking">
+                    <h2 class="tarjeta__titulo" id="titulo-ranking">Carreras que más usan la app</h2>
+                    <ol class="ranking__lista" id="ranking-lista"></ol>
+                    <p class="ranking__vacio" id="ranking-vacio" hidden>Aún no hay estudiantes registrados.</p>
+                </aside>
+            </div>
+        </section>
+
+        <!-- ===================== 2. Tomar o subir foto ===================== -->
+        <section class="pantalla" data-pantalla="camara" aria-labelledby="titulo-camara" hidden>
+            <header class="pantalla__encabezado">
+                <p class="etiqueta">Paso 1 de 3</p>
+                <h1 class="pantalla__titulo" id="titulo-camara">¿Dónde estoy?</h1>
+            </header>
+            <div class="pantalla__columnas">
+                <div class="visor">
+                    <video class="visor__video" id="camara-video" autoplay playsinline muted></video>
+                    <canvas class="visor__lienzo" id="camara-lienzo" hidden></canvas>
+                    <p class="visor__aviso" id="camara-aviso" hidden></p>
+                    <span class="visor__marco" aria-hidden="true"></span>
+                </div>
+                <div class="tarjeta camara-controles">
+                    <p class="consejo"><strong>Consejo:</strong> apunta a un letrero o fachada.</p>
+                    <button class="boton boton--primario boton--grande boton--bloque" id="boton-tomar-foto" type="button" disabled>
+                        Tomar foto
+                    </button>
+                    <label class="boton boton--contorno boton--grande boton--bloque" for="entrada-galeria">
+                        Subir desde galería
+                    </label>
+                    <input class="oculto" id="entrada-galeria" type="file" accept="image/*">
+                    <p class="nota">Detecciones simuladas: el modelo YOLO todavía se está entrenando.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===================== 3. Zona detectada ===================== -->
+        <section class="pantalla" data-pantalla="zona" aria-labelledby="titulo-zona" hidden>
+            <div class="pantalla__columnas">
+                <figure class="foto-resultado">
+                    <img class="foto-resultado__imagen" id="zona-foto" alt="Foto que enviaste">
+                    <figcaption class="semaforo" id="zona-semaforo"></figcaption>
+                </figure>
+                <article class="tarjeta zona-detectada">
+                    <p class="etiqueta">Paso 1 de 3 · Resultado</p>
+                    <h1 class="pantalla__titulo" id="titulo-zona">¡Zona identificada!</h1>
+                    <p class="zona-detectada__mensaje" id="zona-mensaje"></p>
+                    <div class="confianza">
+                        <div class="confianza__fila">
+                            <label class="confianza__etiqueta" for="zona-confianza">Confianza del reconocimiento</label>
+                            <span class="confianza__valor" id="zona-confianza-texto"></span>
+                        </div>
+                        <meter class="confianza__barra" id="zona-confianza" min="0" max="1" low="0.65" high="0.85" optimum="1"></meter>
+                    </div>
+                    <p class="nota" id="zona-tiempo"></p>
+                    <p class="nota" id="zona-nota-simulada">Detecciones simuladas.</p>
+                    <a class="boton boton--primario boton--grande boton--bloque" href="#destinos">Elegir mi destino</a>
+                </article>
+            </div>
+        </section>
+
+        <!-- ===================== 4. Lista de destinos ===================== -->
+        <section class="pantalla" data-pantalla="destinos" aria-labelledby="titulo-destinos" hidden>
+            <header class="pantalla__encabezado">
+                <p class="etiqueta">Paso 2 de 3</p>
+                <h1 class="pantalla__titulo" id="titulo-destinos">¿A dónde vas?</h1>
+                <p class="pantalla__texto" id="destinos-origen"></p>
+            </header>
+            <div class="buscador">
+                <label class="oculto-visual" for="destinos-buscador">Buscar destino</label>
+                <input class="buscador__campo" id="destinos-buscador" type="search" placeholder="Buscar aula, laboratorio…" autocomplete="off">
+            </div>
+            <div class="filtros" role="group" aria-label="Filtrar por tipo">
+                <button class="filtros__boton filtros__boton--activo" type="button" data-filtro="" aria-pressed="true">Todos</button>
+                <button class="filtros__boton" type="button" data-filtro="aula" aria-pressed="false">Aulas</button>
+                <button class="filtros__boton" type="button" data-filtro="laboratorio" aria-pressed="false">Labs</button>
+                <button class="filtros__boton" type="button" data-filtro="biblioteca" aria-pressed="false">Biblioteca</button>
+            </div>
+            <ul class="destinos" id="destinos-lista"></ul>
+            <p class="vacio" id="destinos-vacio" hidden>No encontramos destinos con ese criterio.</p>
+        </section>
+
+        <!-- ===================== 5. Ruta calculada ===================== -->
+        <section class="pantalla" data-pantalla="ruta" aria-labelledby="titulo-ruta" hidden>
+            <header class="pantalla__encabezado">
+                <p class="etiqueta">Paso 3 de 3</p>
+                <h1 class="pantalla__titulo" id="titulo-ruta">Ruta calculada</h1>
+            </header>
+            <div class="pantalla__columnas">
+                <article class="tarjeta">
+                    <dl class="resumen">
+                        <div class="resumen__item"><dt class="resumen__etiqueta">Desde</dt><dd class="resumen__valor" id="ruta-desde"></dd></div>
+                        <div class="resumen__item"><dt class="resumen__etiqueta">Hasta</dt><dd class="resumen__valor" id="ruta-hasta"></dd></div>
+                        <div class="resumen__item"><dt class="resumen__etiqueta">Distancia</dt><dd class="resumen__valor" id="ruta-distancia"></dd></div>
+                        <div class="resumen__item"><dt class="resumen__etiqueta">Tiempo</dt><dd class="resumen__valor" id="ruta-tiempo"></dd></div>
+                    </dl>
+                    <ol class="indicaciones" id="ruta-indicaciones"></ol>
+                    <a class="boton boton--secundario boton--grande boton--bloque" href="#recorrido">Ver recorrido en 3D</a>
+                </article>
+                <figure class="tarjeta mapa">
+                    <svg class="mapa__lienzo" id="ruta-mapa" role="img" aria-label="Mapa de la ruta"></svg>
+                    <figcaption class="mapa__leyenda">
+                        <span class="mapa__clave mapa__clave--origen">Origen</span>
+                        <span class="mapa__clave mapa__clave--destino">Destino</span>
+                        <span class="mapa__clave mapa__clave--ruta">Ruta</span>
+                    </figcaption>
+                </figure>
+            </div>
+        </section>
+
+        <!-- ===================== 6. Recorrido 3D ===================== -->
+        <section class="pantalla" data-pantalla="recorrido" aria-labelledby="titulo-recorrido" hidden>
+            <header class="pantalla__encabezado">
+                <h1 class="pantalla__titulo" id="titulo-recorrido">Recorrido en 3D</h1>
+            </header>
+            <div class="escena">
+                <div class="escena__lienzo" id="escena-3d"></div>
+                <p class="escena__indicacion" id="escena-indicacion" aria-live="polite"></p>
+                <span class="escena__fps" id="escena-fps" title="Cuadros por segundo (meta: 30 o más)"></span>
+                <p class="escena__error" id="escena-error" hidden>No se pudo cargar la vista 3D. Revisa tu conexión a internet.</p>
+            </div>
+            <progress class="escena__progreso" id="escena-progreso" max="100" value="0">0 %</progress>
+            <div class="acciones acciones--centradas">
+                <button class="boton boton--contorno" id="boton-pausar" type="button">Pausar</button>
+                <button class="boton boton--contorno" id="boton-repetir" type="button">Repetir</button>
+                <button class="boton boton--primario" id="boton-finalizar" type="button">Finalizar recorrido</button>
+            </div>
+        </section>
+
+        <!-- ===================== 7. Confirmación de llegada ===================== -->
+        <section class="pantalla" data-pantalla="llegada" aria-labelledby="titulo-llegada" hidden>
+            <article class="tarjeta mensaje-central mensaje-central--exito">
+                <span class="mensaje-central__icono" aria-hidden="true">🎉</span>
+                <h1 class="pantalla__titulo" id="titulo-llegada">¡Has llegado a tu destino!</h1>
+                <p class="pantalla__texto" id="llegada-detalle"></p>
+                <div class="acciones acciones--centradas">
+                    <a class="boton boton--contorno boton--grande" href="#inicio">Volver al inicio</a>
+                    <button class="boton boton--primario boton--grande" id="boton-guardar-historial" type="button">Guardar en mi historial</button>
+                </div>
+            </article>
+        </section>
+
+        <!-- ===================== 8. Historial ===================== -->
+        <section class="pantalla" data-pantalla="historial" aria-labelledby="titulo-historial" hidden>
+            <header class="pantalla__encabezado">
+                <h1 class="pantalla__titulo" id="titulo-historial">Mi historial</h1>
+                <p class="pantalla__texto">Tus rutas, de la más reciente a la más antigua.</p>
+            </header>
+            <ul class="historial" id="historial-lista"></ul>
+            <div class="vacio" id="historial-vacio" hidden>
+                <p>Aún no guardaste rutas. Cuando llegues a un destino, pulsa «Guardar en mi historial».</p>
+                <a class="boton boton--primario" href="#camara">¿Dónde estoy?</a>
+            </div>
+        </section>
+
+        <!-- ===================== 9. Error de reconocimiento ===================== -->
+        <section class="pantalla" data-pantalla="error-reconocimiento" aria-labelledby="titulo-error" hidden>
+            <article class="tarjeta mensaje-central mensaje-central--error">
+                <span class="mensaje-central__icono" aria-hidden="true">📷</span>
+                <h1 class="pantalla__titulo" id="titulo-error">No pudimos reconocer tu ubicación</h1>
+                <p class="pantalla__texto">La imagen no es lo suficientemente clara. Intenta tomar otra foto con mejor iluminación.</p>
+                <a class="boton boton--primario boton--grande" href="#camara">Tomar otra foto</a>
+            </article>
+        </section>
+
+        <!-- ===================== 10. Sin ruta disponible ===================== -->
+        <section class="pantalla" data-pantalla="sin-ruta" aria-labelledby="titulo-sin-ruta" hidden>
+            <article class="tarjeta mensaje-central mensaje-central--aviso">
+                <span class="mensaje-central__icono" aria-hidden="true">🧭</span>
+                <h1 class="pantalla__titulo" id="titulo-sin-ruta">No encontramos una ruta disponible</h1>
+                <p class="pantalla__texto">No existe una conexión registrada entre tu ubicación y el destino seleccionado.</p>
+                <a class="boton boton--primario boton--grande" href="#destinos">Elegir otro destino</a>
+            </article>
+        </section>
+
+        <!-- ===================== Sin datos ===================== -->
+        <section class="pantalla" data-pantalla="sin-datos" aria-labelledby="titulo-sin-datos" hidden>
+            <article class="tarjeta mensaje-central">
+                <span class="mensaje-central__icono" aria-hidden="true">🗂️</span>
+                <h1 class="pantalla__titulo" id="titulo-sin-datos">Sin consulta seleccionada</h1>
+                <p class="pantalla__texto">Los resultados de esta consulta todavía no están disponibles.</p>
+                <a class="boton boton--primario boton--grande" href="#camara">¿Dónde estoy?</a>
+            </article>
+        </section>
+    </main>
+
+    <!-- Avisos flotantes y pantalla de carga (los controla app.js) -->
+    <div class="avisos" id="avisos" role="status" aria-live="polite"></div>
+    <div class="cargando" id="cargando" hidden>
+        <span class="cargando__circulo" aria-hidden="true"></span>
+        <p class="cargando__texto" id="cargando-texto">Cargando…</p>
+    </div>
+
+    <!-- Three.js r128 (versión global) y controles de órbita, desde CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" defer></script>
+    <!-- Módulos propios: app.js va al final porque usa a los demás -->
+    <script src="{% static 'web/js/api.js' %}?v={{ version }}" defer></script>
+    <script src="{% static 'web/js/camera.js' %}?v={{ version }}" defer></script>
+    <script src="{% static 'web/js/ruta.js' %}?v={{ version }}" defer></script>
+    <script src="{% static 'web/js/simulacion.js' %}?v={{ version }}" defer></script>
+    <script src="{% static 'web/js/app.js' %}?v={{ version }}" defer></script>
+</body>
+</html>

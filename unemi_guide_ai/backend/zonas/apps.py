@@ -1,0 +1,8 @@
+"""Configuración de la app ``zonas``: Zonas del campus y destinos dentro de cada zona."""
+from django.apps import AppConfig
+
+
+class ZonasConfig(AppConfig):
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "zonas"
+    verbose_name = "Zonas y destinos"

@@ -1,0 +1,294 @@
+/* ==========================================================================
+   UNEMI Guide AI · login.css
+   Páginas de acceso: iniciar sesión, recuperar contraseña y recuperar
+   usuario. Es independiente de app.css (estas páginas no lo cargan).
+   Incluye los estilos del botón "ojo" que agrega password.js.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Variables (misma paleta que app.css)
+   -------------------------------------------------------------------------- */
+:root {
+    --color-marca: #0D47A1;
+    --color-marca-oscuro: #08306B;
+    --color-marca-claro: #E3ECFA;
+    --color-secundario: #FF6F00;
+    --color-fondo: #F5F5F5;
+    --color-superficie: #FFFFFF;
+    --color-texto: #212121;
+    --color-texto-2: #6E5A46;
+    --color-borde: #E6DCCB;
+    --color-rojo: #C62828;
+    --color-rojo-claro: #FFEBEE;
+    --fuente-titulos: "Space Grotesk", "Segoe UI", sans-serif;
+    --fuente-cuerpo: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    --radio: 14px;
+    --transicion: 0.2s ease;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:focus-visible {
+    outline: 3px solid var(--color-secundario);
+    outline-offset: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   Página de acceso
+   -------------------------------------------------------------------------- */
+.acceso {
+    min-height: 100vh;
+    font-family: var(--fuente-cuerpo);
+    line-height: 1.55;
+    color: var(--color-texto);
+    background:
+        radial-gradient(circle at 85% 10%, rgba(255, 111, 0, 0.25) 0%, rgba(255, 111, 0, 0) 40%),
+        linear-gradient(160deg, var(--color-marca) 0%, var(--color-marca-oscuro) 100%);
+}
+
+.acceso__contenedor {
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 16px;
+    min-height: 100vh;
+    padding: 24px 16px;
+}
+
+.acceso__tarjeta {
+    width: 100%;
+    max-width: 420px;
+    padding: 32px 24px;
+    border-radius: 22px;
+    background-color: var(--color-superficie);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+    animation: aparecer 0.35s ease both;
+}
+
+.acceso__tarjeta--mensaje {
+    text-align: center;
+}
+
+.acceso__marca {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.acceso__logo {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+}
+
+.acceso__nombre {
+    font-family: var(--fuente-titulos);
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--color-marca);
+}
+
+.acceso__acento {
+    color: var(--color-secundario);
+}
+
+.acceso__icono {
+    display: block;
+    margin-bottom: 12px;
+    font-size: 3rem;
+}
+
+.acceso__titulo {
+    font-family: var(--fuente-titulos);
+    font-size: 1.6rem;
+    line-height: 1.2;
+    color: var(--color-marca);
+}
+
+.acceso__texto {
+    margin: 6px 0 22px;
+    font-size: 0.95rem;
+    color: var(--color-texto-2);
+}
+
+.acceso__enlaces {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 18px;
+}
+
+.acceso__enlace {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--color-marca);
+}
+
+.acceso__nota {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid var(--color-borde);
+    font-size: 0.85rem;
+    color: var(--color-texto-2);
+    text-align: center;
+}
+
+.acceso__pie {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.75);
+}
+
+/* --------------------------------------------------------------------------
+   Formulario y campos
+   -------------------------------------------------------------------------- */
+.formulario {
+    display: grid;
+    gap: 16px;
+}
+
+.campo {
+    display: grid;
+    gap: 6px;
+}
+
+.campo__etiqueta {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.campo__entrada {
+    width: 100%;
+    min-height: 48px;
+    padding: 10px 14px;
+    border: 2px solid var(--color-borde);
+    border-radius: var(--radio);
+    font: inherit;
+    background-color: var(--color-superficie);
+    transition: border-color var(--transicion), box-shadow var(--transicion);
+}
+
+.campo__entrada:focus {
+    outline: none;
+    border-color: var(--color-marca);
+    box-shadow: 0 0 0 4px var(--color-marca-claro);
+}
+
+.campo--invalido .campo__entrada {
+    border-color: var(--color-rojo);
+}
+
+.campo__error {
+    font-size: 0.8rem;
+    color: var(--color-rojo);
+}
+
+.alerta {
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+}
+
+.alerta--error {
+    background-color: var(--color-rojo-claro);
+    color: var(--color-rojo);
+}
+
+/* --------------------------------------------------------------------------
+   Mostrar / ocultar contraseña (elementos creados por password.js)
+   -------------------------------------------------------------------------- */
+.campo__clave {
+    position: relative;
+    display: block;
+}
+
+.campo__clave .campo__entrada {
+    padding-right: 52px;
+}
+
+.campo__ojo {
+    position: absolute;
+    top: 50%;
+    right: 6px;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--color-texto-2);
+    cursor: pointer;
+    transform: translateY(-50%);
+    transition: background-color var(--transicion), color var(--transicion);
+}
+
+.campo__ojo:hover {
+    background-color: var(--color-marca-claro);
+    color: var(--color-marca);
+}
+
+.campo__ojo svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* --------------------------------------------------------------------------
+   Botones
+   -------------------------------------------------------------------------- */
+.boton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 50px;
+    padding: 12px 22px;
+    border: none;
+    border-radius: var(--radio);
+    font: inherit;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color var(--transicion), transform var(--transicion);
+}
+
+.boton:hover {
+    transform: translateY(-1px);
+}
+
+.boton--primario {
+    background-color: var(--color-marca);
+    color: #FFFFFF;
+}
+
+.boton--primario:hover {
+    background-color: var(--color-marca-oscuro);
+}
+
+.boton--bloque {
+    width: 100%;
+}
+
+@keyframes aparecer {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+}
+
+@media (min-width: 900px) {
+    .acceso__tarjeta {
+        padding: 40px 36px;
+    }
+}

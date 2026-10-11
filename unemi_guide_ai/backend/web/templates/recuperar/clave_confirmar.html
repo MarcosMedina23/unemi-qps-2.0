@@ -1,0 +1,46 @@
+{% load static %}<!DOCTYPE html>
+{% comment %}
+    Paso 3 de recuperar contraseña: escribir la nueva contraseña.
+    Vista: PasswordResetConfirmView. "validlink" es False si el enlace venció o ya se usó.
+{% endcomment %}
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nueva contraseña | UNEMI Guide AI</title>
+    <link rel="icon" type="image/png" href="{% static 'web/img/logo.png' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+    <link rel="stylesheet" href="{% static 'web/css/login.css' %}?v={{ version }}">
+</head>
+<body class="acceso">
+    <main class="acceso__contenedor">
+        <section class="acceso__tarjeta" aria-labelledby="titulo-acceso">
+            {% if validlink %}
+                <h1 class="acceso__titulo" id="titulo-acceso">Crea tu nueva contraseña</h1>
+                <p class="acceso__texto">Usa al menos 8 caracteres y evita contraseñas comunes o solo números.</p>
+
+                <form class="formulario" method="post" novalidate>
+                    {% csrf_token %}
+                    {% for campo in form %}
+                        <div class="campo{% if campo.errors %} campo--invalido{% endif %}">
+                            <label class="campo__etiqueta" for="{{ campo.id_for_label }}">{{ campo.label }}</label>
+                            {{ campo }}
+                            {% for error in campo.errors %}<p class="campo__error">{{ error }}</p>{% endfor %}
+                        </div>
+                    {% endfor %}
+                    <button class="boton boton--primario boton--bloque" type="submit">Guardar contraseña</button>
+                </form>
+            {% else %}
+                <span class="acceso__icono" aria-hidden="true">⌛</span>
+                <h1 class="acceso__titulo" id="titulo-acceso">Enlace no válido</h1>
+                <p class="acceso__texto">El enlace venció o ya fue usado. Solicita uno nuevo.</p>
+                <a class="boton boton--primario boton--bloque" href="{% url 'recuperar' %}">Solicitar un enlace nuevo</a>
+            {% endif %}
+        </section>
+    </main>
+
+    <script src="{% static 'web/js/password.js' %}?v={{ version }}" defer></script>
+</body>
+</html>

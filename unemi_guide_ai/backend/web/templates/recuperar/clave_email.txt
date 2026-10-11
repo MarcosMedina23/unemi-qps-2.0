@@ -1,0 +1,13 @@
+{% autoescape off %}Hola {{ user.get_short_name|default:user.get_username }}:
+
+Recibimos una solicitud para crear una nueva contraseña en UNEMI Guide AI.
+
+Abre este enlace para continuar (vence en 1 hora):
+{{ protocol }}://{{ domain }}{% url 'recuperar_confirmar' uidb64=uid token=token %}
+
+Tu nombre de usuario es: {{ user.get_username }}
+
+Si no hiciste esta solicitud, ignora este correo: tu contraseña no cambiará.
+
+UNEMI Guide AI
+{% endautoescape %}

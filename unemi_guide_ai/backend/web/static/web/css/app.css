@@ -1,0 +1,664 @@
+/* ==========================================================================
+   UNEMI Guide AI · app.css (estilos globales de la página única)
+   --------------------------------------------------------------------------
+   Contenido: variables, base, barra superior, navegación adaptable,
+   botones, tarjetas, pantallas, avisos y estados comunes.
+   Metodología BEM: .bloque__elemento--modificador
+   Diseño "mobile first": primero celular, luego @media (min-width: 900px).
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Variables (paleta y tipografía)
+   -------------------------------------------------------------------------- */
+:root {
+    --color-marca: #0D47A1;
+    --color-marca-oscuro: #08306B;
+    --color-marca-claro: #E3ECFA;
+    --color-secundario: #FF6F00;
+    --color-secundario-oscuro: #E65100;
+    --color-secundario-claro: #FFF1E5;
+    --color-fondo: #F5F5F5;
+    --color-superficie: #FFFFFF;
+    --color-texto: #212121;
+    --color-texto-2: #6E5A46;
+    --color-borde: #E6DCCB;
+    --color-verde: #2E7D32;
+    --color-verde-claro: #E8F5E9;
+    --color-amarillo: #FF8F00;
+    --color-amarillo-claro: #FFF4E0;
+    --color-rojo: #C62828;
+    --color-rojo-claro: #FFEBEE;
+
+    --fuente-titulos: "Space Grotesk", "Segoe UI", sans-serif;
+    --fuente-cuerpo: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+
+    --radio-chico: 8px;
+    --radio: 14px;
+    --radio-grande: 20px;
+    --sombra: 0 2px 10px rgba(13, 71, 161, 0.08);
+    --sombra-alta: 0 12px 30px rgba(13, 71, 161, 0.16);
+    --transicion: 0.2s ease;
+
+    --alto-barra: 60px;
+    --alto-navegacion-movil: 68px;
+    --ancho-maximo: 1100px;
+}
+
+/* --------------------------------------------------------------------------
+   2. Base
+   -------------------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    min-height: 100vh;
+    font-family: var(--fuente-cuerpo);
+    font-size: 1rem;
+    line-height: 1.55;
+    color: var(--color-texto);
+    background-color: var(--color-fondo);
+    -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+    font-family: var(--fuente-titulos);
+    line-height: 1.2;
+}
+
+img,
+video,
+canvas,
+svg {
+    display: block;
+    max-width: 100%;
+}
+
+a {
+    color: var(--color-marca);
+}
+
+ul,
+ol {
+    list-style: none;
+}
+
+button,
+input,
+select {
+    font: inherit;
+    color: inherit;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+:focus-visible {
+    outline: 3px solid var(--color-secundario);
+    outline-offset: 2px;
+}
+
+/* Oculto visualmente pero disponible para lectores de pantalla */
+.oculto-visual {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+/* Oculto por completo (ej.: el <input type="file">) */
+.oculto {
+    display: none;
+}
+
+.saltar {
+    position: absolute;
+    top: -60px;
+    left: 12px;
+    z-index: 500;
+    padding: 8px 16px;
+    border-radius: var(--radio-chico);
+    background-color: var(--color-secundario);
+    color: #FFFFFF;
+    font-weight: 600;
+}
+
+.saltar:focus {
+    top: 8px;
+}
+
+/* --------------------------------------------------------------------------
+   3. Barra superior
+   -------------------------------------------------------------------------- */
+.barra {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: var(--color-marca);
+    color: #FFFFFF;
+    box-shadow: var(--sombra);
+}
+
+.barra__contenido {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    max-width: var(--ancho-maximo);
+    height: var(--alto-barra);
+    margin-inline: auto;
+    padding-inline: 16px;
+}
+
+.barra__marca {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--fuente-titulos);
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #FFFFFF;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.barra__logo {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radio-chico);
+}
+
+.barra__acento {
+    color: var(--color-secundario);
+}
+
+.barra__usuario {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.barra__nombre {
+    overflow: hidden;
+    max-width: 120px;
+    font-size: 0.9rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* --------------------------------------------------------------------------
+   4. Navegación (celular: abajo, fija)
+   -------------------------------------------------------------------------- */
+.navegacion {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+    padding-bottom: env(safe-area-inset-bottom);
+    background-color: var(--color-superficie);
+    border-top: 1px solid var(--color-borde);
+    box-shadow: 0 -4px 14px rgba(0, 0, 0, 0.06);
+}
+
+.navegacion__lista {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+}
+
+.navegacion__enlace {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    height: var(--alto-navegacion-movil);
+    padding: 4px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--color-texto-2);
+    text-align: center;
+    text-decoration: none;
+    transition: color var(--transicion);
+}
+
+.navegacion__enlace[aria-current="page"] {
+    color: var(--color-marca);
+    font-weight: 600;
+}
+
+.navegacion__icono {
+    width: 24px;
+    height: 24px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* --------------------------------------------------------------------------
+   5. Contenedor y pantallas
+   -------------------------------------------------------------------------- */
+.contenedor {
+    max-width: var(--ancho-maximo);
+    margin-inline: auto;
+    padding: 20px 16px calc(var(--alto-navegacion-movil) + 28px);
+}
+
+.contenedor:focus {
+    outline: none;
+}
+
+.pantalla {
+    animation: aparecer 0.3s ease both;
+}
+
+.pantalla__encabezado {
+    margin-bottom: 20px;
+}
+
+.pantalla__titulo {
+    font-size: 1.6rem;
+    color: var(--color-marca);
+}
+
+.pantalla__texto {
+    margin-top: 6px;
+    color: var(--color-texto-2);
+}
+
+/* Una columna en celular; dos en laptop (ver punto 12) */
+.pantalla__columnas {
+    display: grid;
+    gap: 16px;
+    align-items: start;
+}
+
+.etiqueta {
+    margin-bottom: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-secundario-oscuro);
+}
+
+.nota {
+    font-size: 0.8rem;
+    color: var(--color-texto-2);
+}
+
+.consejo {
+    padding: 12px 14px;
+    border-radius: var(--radio-chico);
+    background-color: var(--color-secundario-claro);
+    font-size: 0.9rem;
+}
+
+/* --------------------------------------------------------------------------
+   6. Tarjetas
+   -------------------------------------------------------------------------- */
+.tarjeta {
+    padding: 20px;
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-grande);
+    background-color: var(--color-superficie);
+    box-shadow: var(--sombra);
+}
+
+.tarjeta__titulo {
+    margin-bottom: 14px;
+    font-size: 1.05rem;
+    color: var(--color-marca);
+}
+
+/* --------------------------------------------------------------------------
+   7. Botones
+   -------------------------------------------------------------------------- */
+.boton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px; /* Tamaño cómodo para tocar con el dedo */
+    padding: 10px 20px;
+    border: 2px solid transparent;
+    border-radius: var(--radio);
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color var(--transicion), color var(--transicion),
+        transform var(--transicion), box-shadow var(--transicion);
+}
+
+.boton:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--sombra);
+}
+
+.boton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.boton--primario {
+    background-color: var(--color-marca);
+    color: #FFFFFF;
+}
+
+.boton--primario:hover {
+    background-color: var(--color-marca-oscuro);
+}
+
+.boton--secundario {
+    background-color: var(--color-secundario);
+    color: #FFFFFF;
+}
+
+.boton--secundario:hover {
+    background-color: var(--color-secundario-oscuro);
+}
+
+.boton--contorno {
+    border-color: var(--color-marca);
+    background-color: transparent;
+    color: var(--color-marca);
+}
+
+.boton--contorno:hover {
+    background-color: var(--color-marca-claro);
+}
+
+/* Botón claro sobre la barra azul ("Salir") */
+.boton--claro {
+    border-color: rgba(255, 255, 255, 0.5);
+    background-color: transparent;
+    color: #FFFFFF;
+}
+
+.boton--claro:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.boton--pequeno {
+    min-height: 36px;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+}
+
+.boton--grande {
+    min-height: 52px;
+    padding: 12px 24px;
+    font-size: 1rem;
+}
+
+.boton--bloque {
+    width: 100%;
+}
+
+/* Llama la atención cuando el recorrido 3D termina */
+.boton--resaltado {
+    animation: latido 1.2s ease infinite;
+}
+
+.acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.acciones--centradas {
+    justify-content: center;
+}
+
+/* --------------------------------------------------------------------------
+   8. Semáforo de reconocimiento
+   -------------------------------------------------------------------------- */
+.semaforo {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.semaforo::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: currentColor;
+}
+
+.semaforo--verde {
+    background-color: var(--color-verde-claro);
+    color: var(--color-verde);
+}
+
+.semaforo--amarillo {
+    background-color: var(--color-amarillo-claro);
+    color: var(--color-amarillo);
+}
+
+.semaforo--rojo {
+    background-color: var(--color-rojo-claro);
+    color: var(--color-rojo);
+}
+
+/* --------------------------------------------------------------------------
+   9. Mensajes centrales (llegada, errores, sin datos)
+   -------------------------------------------------------------------------- */
+.mensaje-central {
+    max-width: 560px;
+    margin: 24px auto;
+    padding: 32px 24px;
+    text-align: center;
+    border-top: 5px solid var(--color-marca);
+}
+
+.mensaje-central--exito {
+    border-top-color: var(--color-verde);
+}
+
+.mensaje-central--error {
+    border-top-color: var(--color-rojo);
+}
+
+.mensaje-central--aviso {
+    border-top-color: var(--color-amarillo);
+}
+
+.mensaje-central__icono {
+    display: block;
+    margin-bottom: 12px;
+    font-size: 3rem;
+}
+
+.mensaje-central .pantalla__texto {
+    margin-bottom: 20px;
+}
+
+.vacio {
+    display: grid;
+    justify-items: center;
+    gap: 14px;
+    padding: 32px 16px;
+    text-align: center;
+    color: var(--color-texto-2);
+}
+
+/* --------------------------------------------------------------------------
+   10. Avisos flotantes y pantalla de carga
+   -------------------------------------------------------------------------- */
+.avisos {
+    position: fixed;
+    right: 16px;
+    bottom: calc(var(--alto-navegacion-movil) + 16px);
+    left: 16px;
+    z-index: 300;
+    display: grid;
+    gap: 8px;
+    pointer-events: none;
+}
+
+.aviso {
+    padding: 12px 16px;
+    border-left: 5px solid var(--color-marca);
+    border-radius: var(--radio-chico);
+    background-color: var(--color-superficie);
+    box-shadow: var(--sombra-alta);
+    font-size: 0.9rem;
+    animation: aparecer 0.25s ease both;
+}
+
+.aviso--exito {
+    border-left-color: var(--color-verde);
+}
+
+.aviso--error {
+    border-left-color: var(--color-rojo);
+}
+
+.cargando {
+    position: fixed;
+    inset: 0;
+    z-index: 400;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: 14px;
+    background-color: rgba(245, 245, 245, 0.85);
+    backdrop-filter: blur(2px);
+}
+
+.cargando__circulo {
+    width: 48px;
+    height: 48px;
+    border: 5px solid var(--color-marca-claro);
+    border-top-color: var(--color-marca);
+    border-radius: 50%;
+    animation: girar 0.8s linear infinite;
+}
+
+.cargando__texto {
+    font-weight: 600;
+    color: var(--color-marca);
+}
+
+/* --------------------------------------------------------------------------
+   11. Animaciones
+   -------------------------------------------------------------------------- */
+@keyframes aparecer {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+}
+
+@keyframes girar {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes latido {
+    50% {
+        box-shadow: 0 0 0 8px rgba(13, 71, 161, 0.18);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   12. Laptop (>= 900px): navegación arriba, dos columnas, ancho 1100px
+   -------------------------------------------------------------------------- */
+@media (min-width: 900px) {
+    .barra__contenido {
+        height: 68px;
+    }
+
+    .navegacion {
+        position: static;
+        padding: 0;
+        border: none;
+        background: none;
+        box-shadow: none;
+    }
+
+    .navegacion__lista {
+        display: flex;
+        gap: 4px;
+    }
+
+    .navegacion__enlace {
+        flex-direction: row;
+        gap: 8px;
+        height: 40px;
+        padding: 0 12px;
+        border-radius: var(--radio-chico);
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.85);
+    }
+
+    .navegacion__enlace:hover {
+        background-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .navegacion__enlace[aria-current="page"] {
+        background-color: rgba(255, 255, 255, 0.18);
+        color: #FFFFFF;
+    }
+
+    .navegacion__icono {
+        width: 18px;
+        height: 18px;
+    }
+
+    .barra__nombre {
+        max-width: 160px;
+    }
+
+    .contenedor {
+        padding: 32px 24px 48px;
+    }
+
+    .pantalla__titulo {
+        font-size: 2rem;
+    }
+
+    .pantalla__columnas {
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+
+    .avisos {
+        right: 24px;
+        bottom: 24px;
+        left: auto;
+        width: 360px;
+    }
+}

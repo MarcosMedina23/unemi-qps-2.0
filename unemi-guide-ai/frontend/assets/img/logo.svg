@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Logo UNEMI Guide AI">
-  <!-- Fondo naranja redondeado -->
-  <rect width="64" height="64" rx="14" fill="#FF6F00"/>
-  <!-- Pin de ubicación azul UNEMI -->
-  <path d="M32 10c-9.4 0-17 7.4-17 16.6C15 39 32 54 32 54s17-15 17-27.4C49 17.4 41.4 10 32 10z" fill="#0D47A1"/>
-  <!-- Centro del pin -->
-  <circle cx="32" cy="26.5" r="7" fill="#FFFFFF"/>
-</svg>

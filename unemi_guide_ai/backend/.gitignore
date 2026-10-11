@@ -1,0 +1,21 @@
+# Secretos y entorno
+.env
+venv/
+
+# Python
+__pycache__/
+*.pyc
+
+# Django
+db.sqlite3
+media/
+
+# Machine learning: modelos entrenados, fotos y resultados (pesan mucho)
+ml/models/*
+!ml/models/.gitkeep
+ml/runs/
+ml/dataset/images/
+ml/dataset/labels/
+ml/dataset/zonas/
+ml/dataset/*.csv
+*.pt

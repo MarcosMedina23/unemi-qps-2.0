@@ -1,0 +1,211 @@
+[
+  {
+    "model": "zonas.zona",
+    "pk": 1,
+    "fields": {
+      "nombre": "Bloque A",
+      "descripcion": "Facultad de Ciencias e Ingeniería",
+      "latitud": "-2.149700",
+      "longitud": "-79.603600",
+      "imagen_referencia": ""
+    }
+  },
+  {
+    "model": "zonas.zona",
+    "pk": 2,
+    "fields": {
+      "nombre": "Bloque B",
+      "descripcion": "Facultad de Ciencias Sociales",
+      "latitud": "-2.149160",
+      "longitud": "-79.604410",
+      "imagen_referencia": ""
+    }
+  },
+  {
+    "model": "zonas.zona",
+    "pk": 3,
+    "fields": {
+      "nombre": "Bloque C",
+      "descripcion": "Laboratorios de Computación",
+      "latitud": "-2.149026",
+      "longitud": "-79.602925",
+      "imagen_referencia": ""
+    }
+  },
+  {
+    "model": "zonas.zona",
+    "pk": 4,
+    "fields": {
+      "nombre": "Biblioteca Central",
+      "descripcion": "Biblioteca y salas de estudio",
+      "latitud": "-2.148351",
+      "longitud": "-79.603600",
+      "imagen_referencia": ""
+    }
+  },
+  {
+    "model": "zonas.zona",
+    "pk": 5,
+    "fields": {
+      "nombre": "Bloque Administrativo",
+      "descripcion": "Rectorado y Secretaría General",
+      "latitud": "-2.149970",
+      "longitud": "-79.602655",
+      "imagen_referencia": ""
+    }
+  },
+  {
+    "model": "zonas.destino",
+    "pk": 1,
+    "fields": {
+      "nombre": "Aula A-101",
+      "tipo": "aula",
+      "zona": 1,
+      "latitud": "-2.149646",
+      "longitud": "-79.603672"
+    }
+  },
+  {
+    "model": "zonas.destino",
+    "pk": 2,
+    "fields": {
+      "nombre": "Lab. Computación 3",
+      "tipo": "laboratorio",
+      "zona": 3,
+      "latitud": "-2.148981",
+      "longitud": "-79.602862"
+    }
+  },
+  {
+    "model": "zonas.destino",
+    "pk": 3,
+    "fields": {
+      "nombre": "Lab. Redes",
+      "tipo": "laboratorio",
+      "zona": 3,
+      "latitud": "-2.148963",
+      "longitud": "-79.602988"
+    }
+  },
+  {
+    "model": "zonas.destino",
+    "pk": 4,
+    "fields": {
+      "nombre": "Sala de lectura",
+      "tipo": "biblioteca",
+      "zona": 4,
+      "latitud": "-2.148297",
+      "longitud": "-79.603555"
+    }
+  },
+  {
+    "model": "zonas.destino",
+    "pk": 5,
+    "fields": {
+      "nombre": "Aula B-204",
+      "tipo": "aula",
+      "zona": 2,
+      "latitud": "-2.149106",
+      "longitud": "-79.604464"
+    }
+  },
+  {
+    "model": "zonas.destino",
+    "pk": 6,
+    "fields": {
+      "nombre": "Secretaría General",
+      "tipo": "oficina",
+      "zona": 5,
+      "latitud": "-2.150024",
+      "longitud": "-79.602601"
+    }
+  },
+  {
+    "model": "rutas.pasillo",
+    "pk": 1,
+    "fields": {
+      "codigo": "P-01",
+      "nombre": "Plaza Central",
+      "latitud": "-2.149160",
+      "longitud": "-79.603600"
+    }
+  },
+  {
+    "model": "rutas.pasillo",
+    "pk": 2,
+    "fields": {
+      "codigo": "P-02",
+      "nombre": "Cruce Este",
+      "latitud": "-2.149700",
+      "longitud": "-79.602925"
+    }
+  },
+  {
+    "model": "rutas.pasillo",
+    "pk": 3,
+    "fields": {
+      "codigo": "P-03",
+      "nombre": "Pasillo Norte",
+      "latitud": "-2.148756",
+      "longitud": "-79.603600"
+    }
+  },
+  {
+    "model": "rutas.conexion",
+    "pk": 1,
+    "fields": {
+      "pasillo_a": 1,
+      "pasillo_b": 2,
+      "distancia_m": 96.1
+    }
+  },
+  {
+    "model": "rutas.conexion",
+    "pk": 2,
+    "fields": {
+      "pasillo_a": 1,
+      "pasillo_b": 3,
+      "distancia_m": 44.9
+    }
+  },
+  {
+    "model": "rutas.ruta",
+    "pk": 1,
+    "fields": {
+      "origen": 1,
+      "destino": 2,
+      "distancia": null,
+      "camino_json": []
+    }
+  },
+  {
+    "model": "rutas.ruta",
+    "pk": 2,
+    "fields": {
+      "origen": 1,
+      "destino": 3,
+      "distancia": null,
+      "camino_json": []
+    }
+  },
+  {
+    "model": "rutas.ruta",
+    "pk": 3,
+    "fields": {
+      "origen": 1,
+      "destino": 4,
+      "distancia": null,
+      "camino_json": []
+    }
+  },
+  {
+    "model": "rutas.ruta",
+    "pk": 4,
+    "fields": {
+      "origen": 1,
+      "destino": 5,
+      "distancia": null,
+      "camino_json": []
+    }
+  }
+]

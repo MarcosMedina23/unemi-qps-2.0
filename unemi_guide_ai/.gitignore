@@ -1,0 +1,3 @@
+# El entorno virtual está aquí (fuera de backend/), por eso se ignora en
+# este nivel. El resto de reglas está en backend/.gitignore.
+venv/
