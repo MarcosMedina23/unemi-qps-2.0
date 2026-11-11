@@ -5,6 +5,7 @@ Los valores sensibles (clave secreta, correo, etc.) se leen del archivo
 ``backend/.env`` con python-dotenv. Ver ``.env.example`` para la lista
 completa de variables.
 """
+import mimetypes
 import os
 from pathlib import Path
 
@@ -156,16 +157,21 @@ REST_FRAMEWORK = {
 # Sin credenciales, los correos se muestran en la consola de runserver.
 EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
 EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
+EMAIL_USE_TLS = leer_booleano("EMAIL_USE_TLS", por_defecto=True)
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
-EMAIL_USE_TLS = True
+# Contraseña de APLICACIÓN (16 letras), nunca la contraseña normal de la cuenta.
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "").replace(" ", "")
+EMAIL_TIMEOUT = 15  # Segundos máximos esperando al servidor de correo
 
 if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 else:
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER or "UNEMI Guide AI <no-responder@unemi-guide.local>"
+# Remitente que ven los estudiantes. Debe ser la misma cuenta que envía
+# (EMAIL_HOST_USER); si no, Gmail rechaza o reemplaza el remitente.
+_CUENTA_REMITENTE = EMAIL_HOST_USER or "no-responder@unemi-guide.local"
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", f"UNEMI Guide AI <{_CUENTA_REMITENTE}>")
 
 # ------------------------------------------------------------------
 # Idioma y zona horaria (Ecuador)
@@ -185,8 +191,14 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 # Se añade como ?v=... a los CSS/JS para que el navegador no use una
-# versión vieja guardada en caché. Cámbiala cuando modifiques el frontend.
-VERSION_ESTATICOS = os.getenv("VERSION_ESTATICOS", "1.0.0")
+# versión vieja guardada en caché. Es la fecha del archivo estático más
+# reciente: cambia sola cada vez que se edita el frontend (al reiniciar runserver).
+def _version_estaticos():
+    archivos = [p for p in (BASE_DIR / "web" / "static").rglob("*") if p.is_file()]
+    return str(int(max(p.stat().st_mtime for p in archivos))) if archivos else "1"
+
+
+VERSION_ESTATICOS = os.getenv("VERSION_ESTATICOS") or _version_estaticos()
 
 # --- AWS S3 (PENDIENTE: no activar todavía) ------------------------------
 # Cuando se use S3 bastará con instalar django-storages y descomentar:
@@ -223,3 +235,7 @@ TIEMPO_MAXIMO_RECONOCIMIENTO_S = 5
 TAMANO_MAXIMO_FOTO_MB = 8
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Unity WebGL: que el servidor entregue los .wasm con su tipo correcto
+# (Windows a veces no lo conoce y Unity carga más lento).
+mimetypes.add_type("application/wasm", ".wasm")

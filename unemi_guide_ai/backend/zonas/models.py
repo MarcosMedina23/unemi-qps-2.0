@@ -60,6 +60,15 @@ class Destino(models.Model):
         LABORATORIO = "laboratorio", "Laboratorio"
         BIBLIOTECA = "biblioteca", "Biblioteca"
         OFICINA = "oficina", "Oficina"
+        # Lugares del campus 3D (los crea: python manage.py cargar_campus)
+        BLOQUE = "bloque", "Bloque"
+        EDIFICIO = "edificio", "Edificio"
+        BANO = "bano", "Baño"
+        DEPORTIVO = "deportivo", "Deportes"
+        ESTACIONAMIENTO = "estacionamiento", "Estacionamiento"
+        AREA_VERDE = "area_verde", "Área verde"
+        ACCESO = "acceso", "Entrada / salida"
+        LUGAR = "lugar", "Lugar"
 
     nombre = models.CharField(max_length=120)
     zona = models.ForeignKey(Zona, on_delete=models.PROTECT, related_name="destinos")

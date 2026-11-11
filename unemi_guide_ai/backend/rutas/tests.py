@@ -2,6 +2,10 @@
 Pruebas de rutas: algoritmo de Dijkstra, cálculo por API e historial.
 Ejecutar: python manage.py test rutas
 """
+import json
+from io import StringIO
+
+import networkx as nx
 from django.core.management import call_command
 from django.db import IntegrityError
 from django.test import SimpleTestCase, TestCase
@@ -9,36 +13,46 @@ from django.test import SimpleTestCase, TestCase
 from zonas.models import Zona
 from zonas.tests import CLAVE_PRUEBA, crear_campus_de_prueba, crear_estudiante
 
+from .management.commands.cargar_campus import ARCHIVO_CAMPUS
 from .models import Conexion, Historial, Pasillo, Ruta
 from .services import (
-    GrafoCampus,
-    Nodo,
     RutaNoEncontradaError,
+    agregar_punto,
+    asegurar_camino,
     calcular_camino,
+    camino_mas_corto,
+    conectar,
+    construir_escena,
     obtener_pasillos_y_conexiones,
 )
+
+
+def punto(clave, x):
+    """Punto de prueba sobre una línea recta (z = 0)."""
+    return {"clave": clave, "nombre": clave, "x": x, "z": 0}
 
 
 class DijkstraTests(SimpleTestCase):
     """Algoritmo puro, sin base de datos."""
 
     def test_prefiere_desvio_si_es_mas_corto(self):
-        grafo = GrafoCampus()
-        for clave, x in (("A", 0), ("B", 20), ("C", 40)):
-            grafo.agregar_nodo(Nodo(clave, clave, x, 0))
-        grafo.conectar("A", "B")
-        grafo.conectar("B", "C")
-        grafo._vecinos["A"]["C"] = grafo._vecinos["C"]["A"] = 100  # Camino directo más largo
-        camino, distancia = grafo.camino_mas_corto("A", "C")
-        self.assertEqual([nodo.clave for nodo in camino], ["A", "B", "C"])
+        grafo = nx.Graph()
+        agregar_punto(grafo, punto("A", 0))
+        agregar_punto(grafo, punto("B", 20))
+        agregar_punto(grafo, punto("C", 40))
+        conectar(grafo, "A", "B")
+        conectar(grafo, "B", "C")
+        conectar(grafo, "A", "C", distancia=100)  # Camino directo, pero con un gran rodeo
+        camino, distancia = camino_mas_corto(grafo, "A", "C")
+        self.assertEqual([p["clave"] for p in camino], ["A", "B", "C"])
         self.assertEqual(distancia, 40)
 
     def test_sin_conexion_lanza_error(self):
-        grafo = GrafoCampus()
-        grafo.agregar_nodo(Nodo("A", "A", 0, 0))
-        grafo.agregar_nodo(Nodo("B", "B", 10, 0))
+        grafo = nx.Graph()
+        agregar_punto(grafo, punto("A", 0))
+        agregar_punto(grafo, punto("B", 10))
         with self.assertRaises(RutaNoEncontradaError):
-            grafo.camino_mas_corto("A", "B")
+            camino_mas_corto(grafo, "A", "B")
 
 
 class CalculoCaminoTests(TestCase):
@@ -77,6 +91,7 @@ class ApiRutasTests(TestCase):
         self.assertEqual(datos["destino"]["nombre"], "Lab. Computación 3")
         self.assertEqual(datos["tiempo_minutos"], 2)  # 145 m a 1.4 m/s
         self.assertEqual(len(datos["escena"]["zonas"]), 5)
+        self.assertEqual(datos["escena"]["destino"], "Lab. Computación 3")  # Para Unity
         self.ruta.refresh_from_db()
         self.assertTrue(self.ruta.camino_json)  # Quedó guardado
 
@@ -155,3 +170,39 @@ class FixtureDatosDemoTests(TestCase):
             content_type="application/json",
         ).json()
         self.assertAlmostEqual(datos["distancia"], 145, delta=5)
+
+
+class CargarCampusTests(TestCase):
+    """python manage.py cargar_campus: el campus real del modelo 3D."""
+
+    def setUp(self):
+        call_command("loaddata", "datos_demo", verbosity=0)
+        call_command("cargar_campus", stdout=StringIO())
+
+    def test_crea_todos_los_lugares_del_campus(self):
+        from zonas.models import Destino
+
+        tipos = set(Destino.objects.values_list("tipo", flat=True))
+        for tipo in ["bloque", "edificio", "bano", "deportivo", "estacionamiento", "area_verde", "acceso"]:
+            self.assertIn(tipo, tipos)
+        self.assertTrue(Destino.objects.filter(nombre="Aula K-301", zona__nombre="Bloque K").exists())
+        self.assertTrue(Pasillo.objects.filter(codigo__startswith="C-").exists())
+        self.assertFalse(Pasillo.objects.filter(codigo__startswith="P-").exists())  # Los de la demo se van
+
+    def test_se_puede_ejecutar_dos_veces_sin_duplicar(self):
+        rutas = Ruta.objects.count()
+        call_command("cargar_campus", stdout=StringIO())
+        self.assertEqual(Ruta.objects.count(), rutas)
+
+    def test_ruta_por_las_calles_hasta_el_bloque_k(self):
+        ruta = Ruta.objects.get(origen__nombre="Entrada peatonal", destino__nombre="Aula K-301")
+        asegurar_camino(ruta)
+        self.assertGreater(ruta.distancia, 100)
+        # Solo giros: nada de "continúa recto" cada 10 m por las calles
+        self.assertLess(len(ruta.camino_json), 15)
+        # La escena usa las coordenadas del modelo 3D: termina en la puerta del Bloque K
+        with open(ARCHIVO_CAMPUS, encoding="utf-8") as archivo:
+            puerta_k = next(l for l in json.load(archivo)["lugares"] if l["id"] == "K")
+        final = construir_escena(ruta)["camino"][-1]
+        self.assertAlmostEqual(final["x"], puerta_k["x"], delta=1)
+        self.assertAlmostEqual(final["z"], -puerta_k["z"], delta=1)  # La escena usa z = sur

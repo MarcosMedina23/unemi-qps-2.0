@@ -13,7 +13,7 @@ const ModuloRuta = (() => {
     "use strict";
 
     const SVG_NS = "http://www.w3.org/2000/svg";
-    const MARGEN_MAPA = 18; // metros alrededor del campus en el mapa
+    const MARGEN_MAPA = 30; // metros alrededor de la ruta en el mapa
 
     const lista = document.getElementById("destinos-lista");
     const vacio = document.getElementById("destinos-vacio");
@@ -63,7 +63,14 @@ const ModuloRuta = (() => {
                 const datos = crear("div", "destino__datos");
                 datos.append(
                     crear("span", "destino__nombre", destino.nombre),
-                    crear("span", "destino__meta", `${destino.tipo_display} · ${destino.zona_nombre}`)
+                    // "Aula · Bloque K"; si el lugar es su propia zona, solo "Bloque"
+                    crear(
+                        "span",
+                        "destino__meta",
+                        destino.zona_nombre === destino.nombre
+                            ? destino.tipo_display
+                            : `${destino.tipo_display} · ${destino.zona_nombre}`
+                    )
                 );
                 const boton = crear("button", "boton boton--primario boton--pequeno", "Ver ruta");
                 boton.type = "button";
@@ -104,9 +111,59 @@ const ModuloRuta = (() => {
     /* ------------------------------------------------------------------
      * Ruta calculada
      * ---------------------------------------------------------------- */
-    function dibujarMapa(escena) {
+    /** Convierte puntos [x, zNorte] del campus al formato "x,y x,y" del SVG (y = sur). */
+    function puntosSvg(puntos) {
+        return puntos.map(([x, z]) => `${x},${-z}`).join(" ");
+    }
+
+    /** Dibuja el campus real (calles, áreas y edificios) debajo de la ruta. */
+    function dibujarCampus(campus) {
+        const elementos = [];
+        const colorArea = { agua: "#5DADE2", cancha: "#2E9E5B", parqueo: "#9E9E9E", verde: "#9CCC65" };
+
+        campus.areas.forEach((a) =>
+            elementos.push(crearSvg("polygon", {
+                class: "mapa__area",
+                fill: colorArea[a.estilo] || "#C5E1A5",
+                points: puntosSvg(Campus.esquinas(a.x, a.z, a.ancho, a.largo, a.rot)),
+            }))
+        );
+        const e = campus.estadio;
+        elementos.push(crearSvg("polygon", {
+            class: "mapa__area",
+            fill: "#C0563E",
+            points: puntosSvg(Campus.elipse(e.x, e.z, e.ancho, e.largo, e.rot)),
+        }));
+        campus.calles.forEach((calle) =>
+            elementos.push(crearSvg("polyline", {
+                class: `mapa__calle mapa__calle--${calle.estilo}`,
+                points: puntosSvg(calle.puntos),
+                "stroke-width": calle.ancho,
+            }))
+        );
+        campus.edificios.forEach((b) =>
+            elementos.push(crearSvg("polygon", {
+                class: "mapa__edificio",
+                fill: b.color,
+                points: puntosSvg(Campus.esquinas(b.x, b.z, b.ancho, b.largo, b.rot)),
+            }))
+        );
+        campus.arcos.forEach((a) =>
+            elementos.push(crearSvg("polygon", { class: "mapa__edificio", fill: a.color, points: puntosSvg(Campus.arco(a)) }))
+        );
+        return elementos;
+    }
+
+    function texto(contenido, x, y, escala) {
+        const etiqueta = crearSvg("text", { class: "mapa__texto", x, y, "font-size": 3.2 * escala });
+        etiqueta.textContent = contenido;
+        return etiqueta;
+    }
+
+    async function dibujarMapa(escena) {
         const mapa = document.getElementById("ruta-mapa");
-        const puntos = [...escena.zonas, ...escena.camino];
+        // El mapa se acerca a la ruta (con margen), no a todo el campus.
+        const puntos = [...escena.zonas.filter((z) => z.es_origen || z.es_destino), ...escena.camino];
         const xs = puntos.map((p) => p.x);
         const zs = puntos.map((p) => p.z);
         const minX = Math.min(...xs) - MARGEN_MAPA;
@@ -116,7 +173,8 @@ const ModuloRuta = (() => {
         const escala = Math.max(ancho, alto) / 100; // Tamaño de textos y puntos
 
         mapa.setAttribute("viewBox", `${minX} ${minZ} ${ancho} ${alto}`);
-        const elementos = [];
+        const campus = await Campus.cargar();
+        const elementos = campus ? dibujarCampus(campus) : [];
 
         // Línea de la ruta
         elementos.push(
@@ -127,21 +185,14 @@ const ModuloRuta = (() => {
             })
         );
 
-        // Zonas con su nombre
-        escena.zonas.forEach((zona) => {
-            let clase = "mapa__zona";
-            if (zona.es_origen) clase += " mapa__zona--origen";
-            if (zona.es_destino) clase += " mapa__zona--destino";
-            elementos.push(crearSvg("circle", { class: clase, cx: zona.x, cy: zona.z, r: 2.4 * escala }));
-            const etiqueta = crearSvg("text", {
-                class: "mapa__texto",
-                x: zona.x,
-                y: zona.z + 6 * escala,
-                "font-size": 3.2 * escala,
+        // Solo el origen y el destino llevan punto y nombre (el resto ya se ve en el campus)
+        escena.zonas
+            .filter((zona) => zona.es_origen || zona.es_destino)
+            .forEach((zona) => {
+                const clase = `mapa__zona ${zona.es_origen ? "mapa__zona--origen" : "mapa__zona--destino"}`;
+                elementos.push(crearSvg("circle", { class: clase, cx: zona.x, cy: zona.z, r: 2.4 * escala }));
+                elementos.push(texto(zona.nombre, zona.x, zona.z + 6 * escala, escala));
             });
-            etiqueta.textContent = zona.nombre;
-            elementos.push(etiqueta);
-        });
 
         // Punto exacto del destino
         const final = escena.camino[escena.camino.length - 1];

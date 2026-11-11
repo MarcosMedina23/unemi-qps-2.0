@@ -107,6 +107,39 @@
     content: "🏛️";
 }
 
+/* Lugares del campus 3D (python manage.py cargar_campus) */
+.destino__icono--bloque::before {
+    content: "🏢";
+}
+
+.destino__icono--edificio::before {
+    content: "🏬";
+}
+
+.destino__icono--bano::before {
+    content: "🚻";
+}
+
+.destino__icono--deportivo::before {
+    content: "🏟️";
+}
+
+.destino__icono--estacionamiento::before {
+    content: "🅿️";
+}
+
+.destino__icono--area_verde::before {
+    content: "🌳";
+}
+
+.destino__icono--acceso::before {
+    content: "🚪";
+}
+
+.destino__icono--lugar::before {
+    content: "🚩"; /* Monumento de las Banderas */
+}
+
 .destino__datos {
     display: grid;
     flex: 1;
@@ -201,7 +234,30 @@
     width: 100%;
     aspect-ratio: 1 / 1;
     border-radius: var(--radio);
-    background-color: #EEF3EA;
+    background-color: #B0DE98;
+}
+
+/* Campus real de fondo (campus_unemi.json) */
+.mapa__area {
+    opacity: 0.85;
+}
+
+.mapa__calle {
+    fill: none;
+    stroke: #B0B0B0;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.mapa__calle--peatonal,
+.mapa__calle--sendero {
+    stroke: #E8DFC8;
+}
+
+.mapa__edificio {
+    stroke: #FFFFFF;
+    stroke-width: 0.6;
+    opacity: 0.9;
 }
 
 .mapa__ruta {
@@ -234,6 +290,11 @@
     font-weight: 600;
     fill: var(--color-texto);
     text-anchor: middle;
+    /* Borde blanco para que el nombre se lea encima de los edificios */
+    paint-order: stroke;
+    stroke: #FFFFFF;
+    stroke-width: 0.3em;
+    stroke-linejoin: round;
 }
 
 .mapa__leyenda {

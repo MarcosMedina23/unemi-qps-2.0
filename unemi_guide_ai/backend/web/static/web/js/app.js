@@ -152,21 +152,26 @@
         const respuesta = await Api.reconocerZona(foto);
         cargando(false);
 
+        // El servicio de IA no respondió y se usó la simulación.
+        if (respuesta.datos.aviso) avisar(respuesta.datos.aviso, "info");
+
         if (respuesta.estado === 404) {
             irA("sin-datos");
             return;
         }
+        // 400 con semáforo rojo: la IA no reconoció la zona en la foto.
+        if (respuesta.estado === 400 && respuesta.datos.semaforo === "rojo") {
+            irA("error-reconocimiento");
+            return;
+        }
         if (!respuesta.ok) {
+            // Otro 400: la foto no es válida (formato, tamaño...).
             const errores = respuesta.datos.foto || [respuesta.datos.detalle || "No pudimos procesar la foto."];
             avisar(errores.join(" "), "error");
             return;
         }
 
         const resultado = respuesta.datos;
-        if (!resultado.reconocida) {
-            irA("error-reconocimiento");
-            return;
-        }
 
         // Nueva consulta: se descarta la ruta anterior.
         estado.zona = resultado.zona;

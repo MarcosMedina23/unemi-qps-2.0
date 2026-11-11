@@ -27,9 +27,10 @@ Proyecto académico · Construcción de Software.
 | Base de datos | SQLite (desarrollo) |
 | Imágenes | Pillow |
 | Visión artificial (opcional) | YOLOv8 (Ultralytics) + TF-IDF + RandomForest (scikit-learn) |
-| Rutas | Algoritmo de Dijkstra propio sobre el grafo de pasillos |
+| Microservicio de IA | FastAPI + YOLOv8 (`ia_service/`, puerto 8001) |
+| Rutas | Dijkstra con NetworkX sobre el grafo de pasillos |
 | Frontend | HTML + CSS + JavaScript puro, servido por Django |
-| 3D | Three.js (CDN) |
+| 3D | Three.js en la web · Unity: campus UNEMI real con personita que camina (`unity/`) |
 | Configuración | python-dotenv (`backend/.env`) |
 | Otros | django-cors-headers, boto3 (S3, pendiente) |
 
@@ -70,6 +71,15 @@ unemi_guide_ai/
 │       ├── forms.py · views.py · urls.py
 │       ├── static/web/       css/ · js/ · img/logo.png
 │       └── templates/        web/index.html · registration/login.html · recuperar/
+├── ia_service/               Microservicio de IA (FastAPI + YOLOv8)
+│   ├── main.py               POST /predict y GET /health
+│   ├── requirements.txt
+│   └── models/               Aquí va tu best.pt
+├── unity/                    Campus UNEMI en 3D (Unity, C#) — ver unity/LEEME.md
+│   ├── Assets/UNEMI/Editor/  UNEMICampusBuilder.cs (menú UNEMI > Generar Campus 3D)
+│   ├── Assets/UNEMI/Scripts/ CampusData · RutaCampus · PersonaCaminante · GrafoCalles
+│   │                         CampusCameraController · CampusLocation · ApiClient ...
+│   └── herramientas/         campus_data.py + gen_cs.py (regeneran CampusData.cs)
 ├── database/
 │   ├── init.sql              Esquema de las tablas (referencia)
 │   └── seed_data.sql         Datos de prueba en SQL (referencia; usa loaddata)
@@ -109,6 +119,12 @@ python manage.py createsuperuser
 # 6. (Opcional) cargar datos de prueba: 5 zonas, 6 destinos, 3 pasillos y 4 rutas
 python manage.py loaddata datos_demo
 
+# 6b. Cargar el campus UNEMI real (el mismo del modelo 3D de Unity):
+#     bloques, edificios, baños, canchas, estacionamientos, áreas verdes,
+#     entrada y salida + las calles como pasillos + todas las rutas.
+#     Reemplaza los pasillos de prueba. Se puede repetir sin duplicar nada.
+python manage.py cargar_campus
+
 # 7. Arrancar el servidor
 python manage.py runserver
 ```
@@ -128,6 +144,105 @@ python manage.py runserver
    «Conexiones». Cada zona se conecta sola a sus 2 pasillos más cercanos. Si no registras
    ninguno, se usan los de `rutas/mapa_campus.py`.
 5. **Rutas:** elige origen y destino y deja la distancia y el camino **vacíos**: se calculan solos.
+
+---
+
+## Correo real para recuperar contraseña (mmedinal2@unemi.edu.ec)
+
+La recuperación de contraseña (`/recuperar/`) y de usuario (`/recuperar-usuario/`) ya
+funciona. Los correos salen desde **mmedinal2@unemi.edu.ec**, que ya está configurado en
+`backend/.env`. Solo falta la **contraseña de aplicación**.
+
+### Paso 1 · ¿La cuenta es de Google o de Microsoft?
+
+Entra al correo institucional en el navegador:
+- Si se abre en **mail.google.com** (Gmail), la cuenta es de Google. Sigue el paso 2.
+- Si se abre en **outlook.office.com**, la cuenta es de Microsoft. En `.env` cambia a
+  `EMAIL_HOST=smtp.office365.com` y crea la contraseña de aplicación desde
+  **mysignins.microsoft.com → Información de seguridad**.
+
+### Paso 2 · Crear la contraseña de aplicación (Google)
+
+1. Inicia sesión con **mmedinal2@unemi.edu.ec** en **https://myaccount.google.com**.
+2. Ve a **Seguridad** y activa **Verificación en 2 pasos**. Es obligatoria.
+3. Entra a **https://myaccount.google.com/apppasswords**.
+4. Escribe un nombre, por ejemplo `UNEMI Guide AI`, y pulsa **Crear**.
+5. Copia las **16 letras** que aparecen. Solo se muestran una vez.
+6. Pégalas en `backend/.env` y reinicia el servidor:
+   ```
+   EMAIL_HOST_PASSWORD=abcdefghijklmnop
+   ```
+
+Si en el paso 3 aparece «La opción que buscas no está disponible», el departamento de TI de
+la UNEMI tiene desactivadas las contraseñas de aplicación para cuentas institucionales. En
+ese caso pídeles que la habiliten, o usa temporalmente un Gmail personal cambiando
+`EMAIL_HOST_USER` y `DEFAULT_FROM_EMAIL`.
+
+**Probar el envío** (desde `backend`, con el venv activo):
+```powershell
+python manage.py sendtestemail tu_correo@unemi.edu.ec
+```
+Mientras `EMAIL_HOST_PASSWORD` esté vacío, el correo se muestra en la consola en vez de
+enviarse.
+
+---
+
+## Microservicio de IA (`ia_service/`)
+
+Servicio aparte (FastAPI) que procesa la foto con tu modelo YOLOv8 `best.pt`. Django le
+envía la foto. **Si el microservicio está apagado o falla, Django usa la simulación** y la
+app sigue funcionando: la pantalla muestra un aviso.
+
+**Instalación** (en una **terminal nueva** de PowerShell):
+```powershell
+cd "C:\Users\USER\Downloads\GPS UNEMI\unemi_guide_ai"
+venv\Scripts\activate
+cd ia_service
+pip install -r requirements.txt
+```
+Las dependencias pesan unos 2 GB por PyTorch y se instalan una sola vez. Después:
+1. Copia tu `best.pt` en `ia_service\models\best.pt`.
+2. Arranca el servicio:
+   ```powershell
+   uvicorn main:app --host 127.0.0.1 --port 8001
+   ```
+3. Comprueba en el navegador http://127.0.0.1:8001/health. Debe decir
+   `"modelo_disponible": true`.
+
+**Conectarlo con Django:** en `backend/.env` pon la línea de abajo y reinicia `runserver`:
+```
+IA_SERVICE_URL=http://127.0.0.1:8001/predict
+```
+
+¿Cómo decide Django la zona? Si `best.pt` se entrenó con las zonas como clases («Bloque A»,
+«Biblioteca Central»…), usa la detección de mayor confianza. Si se entrenó con objetos
+(letrero, puerta…) y existe el clasificador de `backend/ml/models/`, decide con TF-IDF +
+RandomForest. **Los nombres de las clases deben ser iguales a los nombres de las zonas del
+admin.**
+
+---
+
+## Campus 3D en Unity
+
+La web ya muestra el recorrido en 3D con Three.js. En `unity/` está el **campus real de la
+UNEMI en 3D** (bloques, baños, canchas, estadio, parqueos, calles y estero) con una
+**personita que camina por las calles** hasta el destino. Guía completa: `unity/LEEME.md`.
+
+1. Abre **Unity Hub → Add → Add project from disk** y elige la carpeta `unity`
+   (o crea un proyecto 3D nuevo y copia `unity/Assets/UNEMI` dentro de su `Assets`).
+2. Menú **UNEMI → Generar Campus 3D**. Crea el campus, la personita, la línea de la ruta,
+   la cámara y guarda la escena en `Assets/UNEMI/Escenas/CampusUNEMI.unity`.
+3. Dale **Play**: la personita camina de la entrada peatonal al aula K-301 (demo).
+4. Cómo llegan los datos de Django:
+   - **Unity WebGL dentro de la web:** `simulacion.js` envía la escena con
+     `unityInstance.SendMessage("RouteAnimator", "LoadWaypoints", json)`. Unity busca el
+     destino por nombre (`escena.destino`, p. ej. «Aula K-301» o «Bloque K») y camina por
+     las calles con Dijkstra. Pausar y Repetir también se envían.
+   - **Unity de escritorio:** `ApiClient.CalculateRoute(origenId, destinoId, ...)` y después
+     `RutaCampus.LoadRoute(...)` (cookies `sessionid` y `csrftoken` en el Inspector).
+
+Los nombres de zonas/destinos del admin deben parecerse a los del campus 3D («Bloque K»,
+«CDIP», «CRAI»…). Si no coinciden, agrega un alias en `RutaCampus` (Inspector).
 
 ---
 
@@ -206,9 +321,11 @@ python manage.py runserver 0.0.0.0:8000
 python manage.py test
 ```
 
-Son 42 pruebas. Cubren:
-- **API:** acceso solo con sesión, solo lectura, filtros, 404, semáforo (incluido el rojo) y
+Son 46 pruebas. Cubren:
+- **API:** acceso solo con sesión, solo lectura, filtros, 404, semáforo rojo con error 400 y
   tiempo de reconocimiento ≤ 5 s.
+- **Microservicio de IA:** zona según la detección, sin detecciones, y caída automática a la
+  simulación si el servicio está apagado o responde con error.
 - **Rutas:** algoritmo de Dijkstra, pasillos del admin, fixture `datos_demo`, ruta inexistente,
   historial privado y que no se puede editar.
 - **Visión:** elección automática del modo (simulado o local) y clasificador de zonas.
@@ -257,9 +374,9 @@ carpetas de `ml/dataset/zonas/` deben ser **iguales** a los nombres de las zonas
 
 ## Pendiente (punto de enlace listo)
 
-- **Microservicio `ia_service`:** si YOLO debe correr en otro servidor, se define
-  `IA_SERVICE_URL` en `.env` y se completa `reconocer_zona_ia_service()` en
-  `vision/services.py`.
+- **Probar `ia_service` con el `best.pt` real.** El servicio y la integración se probaron con
+  un YOLO falso, porque PyTorch no está instalado aquí.
+- **Unity:** calibrar el GPS del campus (`CampusGeoReference`) y publicar el build WebGL en la web.
 - **Servidor en la nube** con enlace fijo, HTTPS y PostgreSQL. También hay que decidir dónde
   corre YOLO.
 - **AWS S3** con django-storages: el bloque de configuración ya está comentado en `settings.py`.

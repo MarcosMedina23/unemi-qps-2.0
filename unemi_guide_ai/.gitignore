@@ -1,3 +1,20 @@
 # El entorno virtual está aquí (fuera de backend/), por eso se ignora en
 # este nivel. El resto de reglas está en backend/.gitignore.
 venv/
+__pycache__/
+
+# Modelos de IA (pesan mucho): se copian a mano en cada PC.
+ia_service/models/*
+!ia_service/models/.gitkeep
+
+# Unity: carpetas que Unity genera solo.
+unity/Library/
+unity/Temp/
+unity/Logs/
+unity/obj/
+unity/UserSettings/
+unity/Build/
+unity/Builds/
+unity/.vs/
+unity/*.csproj
+unity/*.sln

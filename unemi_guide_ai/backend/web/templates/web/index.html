@@ -173,13 +173,20 @@
             </header>
             <div class="buscador">
                 <label class="oculto-visual" for="destinos-buscador">Buscar destino</label>
-                <input class="buscador__campo" id="destinos-buscador" type="search" placeholder="Buscar aula, laboratorio…" autocomplete="off">
+                <input class="buscador__campo" id="destinos-buscador" type="search" placeholder="Buscar bloque, aula, baño, estacionamiento…" autocomplete="off">
             </div>
             <div class="filtros" role="group" aria-label="Filtrar por tipo">
                 <button class="filtros__boton filtros__boton--activo" type="button" data-filtro="" aria-pressed="true">Todos</button>
+                <button class="filtros__boton" type="button" data-filtro="bloque" aria-pressed="false">Bloques</button>
                 <button class="filtros__boton" type="button" data-filtro="aula" aria-pressed="false">Aulas</button>
                 <button class="filtros__boton" type="button" data-filtro="laboratorio" aria-pressed="false">Labs</button>
                 <button class="filtros__boton" type="button" data-filtro="biblioteca" aria-pressed="false">Biblioteca</button>
+                <button class="filtros__boton" type="button" data-filtro="bano" aria-pressed="false">Baños</button>
+                <button class="filtros__boton" type="button" data-filtro="edificio" aria-pressed="false">Edificios</button>
+                <button class="filtros__boton" type="button" data-filtro="deportivo" aria-pressed="false">Deportes</button>
+                <button class="filtros__boton" type="button" data-filtro="estacionamiento" aria-pressed="false">Estacionamientos</button>
+                <button class="filtros__boton" type="button" data-filtro="area_verde" aria-pressed="false">Áreas verdes</button>
+                <button class="filtros__boton" type="button" data-filtro="acceso" aria-pressed="false">Entrada y salida</button>
             </div>
             <ul class="destinos" id="destinos-lista"></ul>
             <p class="vacio" id="destinos-vacio" hidden>No encontramos destinos con ese criterio.</p>
@@ -219,10 +226,11 @@
                 <h1 class="pantalla__titulo" id="titulo-recorrido">Recorrido en 3D</h1>
             </header>
             <div class="escena">
-                <div class="escena__lienzo" id="escena-3d"></div>
+                <div class="escena__lienzo" id="escena-3d" data-campus="{% static 'web/data/campus_unemi.json' %}?v={{ version }}"{% if unity_disponible %} data-unity="{% static 'web/unity/Build/unemi' %}"{% endif %}></div>
                 <p class="escena__indicacion" id="escena-indicacion" aria-live="polite"></p>
                 <span class="escena__fps" id="escena-fps" title="Cuadros por segundo (meta: 30 o más)"></span>
                 <p class="escena__error" id="escena-error" hidden>No se pudo cargar la vista 3D. Revisa tu conexión a internet.</p>
+                <p class="escena__ayuda">Arrastra para girar · rueda o pellizco para acercar</p>
             </div>
             <progress class="escena__progreso" id="escena-progreso" max="100" value="0">0 %</progress>
             <div class="acciones acciones--centradas">
@@ -302,6 +310,7 @@
     <!-- Módulos propios: app.js va al final porque usa a los demás -->
     <script src="{% static 'web/js/api.js' %}?v={{ version }}" defer></script>
     <script src="{% static 'web/js/camera.js' %}?v={{ version }}" defer></script>
+    <script src="{% static 'web/js/campus.js' %}?v={{ version }}" defer></script>
     <script src="{% static 'web/js/ruta.js' %}?v={{ version }}" defer></script>
     <script src="{% static 'web/js/simulacion.js' %}?v={{ version }}" defer></script>
     <script src="{% static 'web/js/app.js' %}?v={{ version }}" defer></script>

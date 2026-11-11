@@ -115,3 +115,24 @@
         flex: 0 0 auto;
     }
 }
+
+/* Ayuda de controles, abajo a la izquierda */
+.escena__ayuda {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    margin: 0;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background-color: rgba(255, 255, 255, 0.85);
+    color: var(--color-texto-2);
+    font-size: 0.75rem;
+    pointer-events: none;
+}
+
+/* Canvas de Unity WebGL (cuando existe el build) */
+.escena__lienzo #unity-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}

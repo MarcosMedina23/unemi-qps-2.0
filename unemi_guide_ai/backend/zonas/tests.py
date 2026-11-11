@@ -121,7 +121,12 @@ class ReconocimientoTests(TestCase):
             "simulado": False,
         }
         with mock.patch("zonas.views.reconocer_zona", return_value=sin_objetos):
-            datos = self.client.post("/api/zonas/reconocer/", {"foto": foto_jpeg()}).json()
+            respuesta = self.client.post("/api/zonas/reconocer/", {"foto": foto_jpeg()})
+        self.assertEqual(respuesta.status_code, 400)
+        datos = respuesta.json()
+        self.assertEqual(
+            datos["detalle"], "No pudimos reconocer tu ubicación, intenta con mejor iluminación."
+        )
         self.assertEqual(datos["semaforo"], "rojo")
         self.assertFalse(datos["reconocida"])
         self.assertIsNone(datos["zona"])

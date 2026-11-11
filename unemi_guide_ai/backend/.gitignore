@@ -8,6 +8,7 @@ __pycache__/
 
 # Django
 db.sqlite3
+db.sqlite3.respaldo*
 media/
 
 # Machine learning: modelos entrenados, fotos y resultados (pesan mucho)

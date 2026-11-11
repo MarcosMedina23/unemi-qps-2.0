@@ -24,6 +24,7 @@ from .models import Destino, Zona
 from .serializers import DestinoSerializer, FotoReconocimientoSerializer, ZonaSerializer
 
 MENSAJE_SIN_DATOS = "No hay datos disponibles."
+MENSAJE_NO_RECONOCIDA = "No pudimos reconocer tu ubicación, intenta con mejor iluminación."
 
 
 def respuesta_sin_datos():
@@ -86,10 +87,16 @@ class ZonaViewSet(SinDatosMixin, viewsets.ReadOnlyModelViewSet):
             "simulado": resultado["simulado"],
             "tiempo_ms": tiempo_ms,
         }
+        if resultado.get("aviso"):
+            # Ej.: el microservicio de IA no respondió y se usó la simulación.
+            respuesta["aviso"] = resultado["aviso"]
 
-        # Ninguna zona o confianza baja (< 0.65): semáforo rojo.
+        # YOLO no detectó nada o la confianza es baja (< 0.65): 400 + semáforo rojo.
         if not resultado["zona"] or resultado["confianza"] < UMBRAL_AMARILLO:
-            return Response({**respuesta, **clasificar_confianza(0.0, "")})
+            return Response(
+                {**respuesta, **clasificar_confianza(0.0, ""), "detalle": MENSAJE_NO_RECONOCIDA},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         zona = Zona.objects.filter(nombre__iexact=resultado["zona"]).first()
         if zona is None:

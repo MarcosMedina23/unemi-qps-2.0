@@ -18,6 +18,9 @@ from django.views.generic import FormView, TemplateView
 
 from .forms import FormularioRecuperarUsuario
 
+# Build WebGL de Unity (File > Build Settings > WebGL, nombre "unemi"). Ver unity/LEEME.md
+CARPETA_UNITY = settings.BASE_DIR / "web" / "static" / "web" / "unity" / "Build"
+
 
 @method_decorator(ensure_csrf_cookie, name="dispatch")
 class InicioView(LoginRequiredMixin, TemplateView):
@@ -33,6 +36,9 @@ class InicioView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         contexto = super().get_context_data(**kwargs)
         contexto["version"] = settings.VERSION_ESTATICOS
+        # Si ya se copió el build WebGL de Unity, la página muestra Unity en el
+        # recorrido 3D. Si no, dibuja el mismo campus con Three.js.
+        contexto["unity_disponible"] = (CARPETA_UNITY / "unemi.loader.js").exists()
         return contexto
 
 

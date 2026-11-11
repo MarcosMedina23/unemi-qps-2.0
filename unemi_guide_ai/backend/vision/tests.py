@@ -4,11 +4,13 @@ Ejecutar: python manage.py test vision
 """
 from unittest import mock
 
-from django.test import SimpleTestCase
+import requests
+from django.test import SimpleTestCase, override_settings
 
 from zonas.tests import foto_jpeg
 
 from .services import (
+    AVISO_IA_NO_DISPONIBLE,
     modelos_locales_disponibles,
     predecir_zona,
     reconocer_zona,
@@ -99,3 +101,50 @@ class ModoLocalTests(SimpleTestCase):
             mock.patch("vision.services.reconocer_zona_modelo_local", return_value=resultado_local),
         ):
             self.assertEqual(reconocer_zona(foto_jpeg())["modo"], "local")
+
+
+class RespuestaFalsa:
+    """Imita la respuesta HTTP del microservicio ia_service."""
+
+    def __init__(self, datos, estado=200):
+        self.datos = datos
+        self.status_code = estado
+
+    def raise_for_status(self):
+        if self.status_code >= 400:
+            raise requests.HTTPError(f"Error {self.status_code}")
+
+    def json(self):
+        return self.datos
+
+
+@override_settings(IA_SERVICE_URL="http://127.0.0.1:8001/predict")
+class MicroservicioIaTests(SimpleTestCase):
+    def simular_post(self, **kwargs):
+        return mock.patch("vision.services.requests.post", **kwargs)
+
+    def test_usa_la_deteccion_de_mayor_confianza_como_zona(self):
+        detecciones = [
+            {"clase": "Biblioteca Central", "confianza": 0.40, "caja": [0, 0, 5, 5]},
+            {"clase": "Bloque A", "confianza": 0.91, "caja": [1, 1, 9, 9]},
+        ]
+        respuesta = RespuestaFalsa({"detecciones": detecciones})
+        with self.simular_post(return_value=respuesta) as post:
+            resultado = reconocer_zona(foto_jpeg())
+        self.assertEqual((resultado["zona"], resultado["confianza"]), ("Bloque A", 0.91))
+        self.assertEqual(resultado["modo"], "ia_service")
+        self.assertIn("foto", post.call_args.kwargs["files"])
+
+    def test_si_no_detecta_nada_no_hay_zona(self):
+        with self.simular_post(return_value=RespuestaFalsa({"detecciones": []})):
+            self.assertIsNone(reconocer_zona(foto_jpeg())["zona"])
+
+    def test_si_el_servicio_esta_apagado_usa_la_simulacion(self):
+        with self.simular_post(side_effect=requests.ConnectionError("apagado")):
+            resultado = reconocer_zona(foto_jpeg())
+        self.assertEqual(resultado["modo"], "simulado")
+        self.assertEqual(resultado["aviso"], AVISO_IA_NO_DISPONIBLE)
+
+    def test_si_el_servicio_responde_con_error_usa_la_simulacion(self):
+        with self.simular_post(return_value=RespuestaFalsa({}, estado=503)):
+            self.assertEqual(reconocer_zona(foto_jpeg())["modo"], "simulado")

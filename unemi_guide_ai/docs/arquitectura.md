@@ -46,8 +46,10 @@ El JavaScript solo **muestra** esos resultados.
 |---|---|---|
 | `usuarios` | Modelo `Usuario` (AbstractUser + es_estudiante, carrera, semestre), ranking de carreras | `models.py`, `admin.py`, `views.py` |
 | `zonas` | `Zona`, `Destino`, API de solo lectura y reconocimiento por foto | `models.py`, `views.py`, `serializers.py` |
-| `rutas` | `Pasillo`, `Conexion`, `Ruta`, `Historial`, cálculo de ruta, historial y Dijkstra | `services.py`, `models.py`, `fixtures/datos_demo.json` |
-| `vision` | Reconocimiento en 3 modos (simulado, modelo local, ia_service) y utilidades | `services.py`, `utils.py` |
+| `rutas` | `Pasillo`, `Conexion`, `Ruta`, `Historial`, cálculo de ruta, historial y Dijkstra. `cargar_campus` carga el campus real (lugares, calles y rutas) | `services.py`, `models.py`, `management/commands/cargar_campus.py` |
+| `vision` | Reconocimiento en 3 modos (ia_service con respaldo simulado, modelo local, simulado) | `services.py`, `utils.py` |
+| `ia_service/` (carpeta) | Microservicio FastAPI + YOLOv8: `POST /predict`, `GET /health` | `main.py` |
+| `unity/` (carpeta) | Campus UNEMI en 3D (Unity): genera el campus, recibe la misma escena JSON y hace caminar a la personita por las calles (Dijkstra) | `UNEMICampusBuilder.cs`, `RutaCampus.cs`, `PersonaCaminante.cs`, `GrafoCalles.cs`, `CampusData.cs` |
 | `ml/` (carpeta) | Entrenamiento de YOLOv8 y del clasificador TF-IDF + RandomForest | `entrenar_yolo.py`, `entrenar_clasificador.py` |
 | `web` | Página única, login, logout y recuperación de cuenta | `views.py`, `urls.py`, `forms.py`, `templates/`, `static/` |
 
@@ -61,7 +63,7 @@ para crear, editar ni borrar zonas, destinos, rutas o usuarios: eso solo se hace
 | Método | Endpoint | Descripción |
 |---|---|---|
 | GET | `/api/zonas/` · `/api/zonas/{id}/` | Zonas (comunes a todos) |
-| POST | `/api/zonas/reconocer/` | Foto (`multipart`, campo `foto`) → zona y semáforo |
+| POST | `/api/zonas/reconocer/` | Foto (`multipart`, campo `foto`) → zona y semáforo. **400** «No pudimos reconocer tu ubicación, intenta con mejor iluminación» si no se reconoce |
 | GET | `/api/destinos/` · `/api/destinos/{id}/` | Destinos. Filtros: `?tipo=`, `?q=`, `?zona=` |
 | POST | `/api/rutas/calcular/` | `{"origen_id", "destino_id"}` → ruta, indicaciones y escena 3D |
 | GET | `/api/historial/` · `/api/historial/{id}/` | Historial **del usuario actual** (más reciente primero) |
@@ -123,8 +125,9 @@ Inicio ──► ¿Dónde estoy? ──foto──► POST /api/zonas/reconocer/
 
 ### 5.2 Algoritmo
 
-`GrafoCampus.camino_mas_corto()` usa una cola de prioridad (`heapq`). Su complejidad es
-O((V + E) log V).
+`camino_mas_corto(grafo, origen, destino)` usa `networkx.single_source_dijkstra` sobre un
+`nx.Graph`, con la distancia como peso. Su complejidad es O((V + E) log V). El pseudocódigo
+del algoritmo es este:
 
 ```text
 distancias[origen] = 0;  cola = [(0, origen)]
@@ -201,8 +204,9 @@ El detalle de las tablas está en `database/init.sql`.
 ```text
 vision/services.py
     reconocer_zona(foto)
-        ├── IA_SERVICE_URL definido ──► reconocer_zona_ia_service(foto)    [PENDIENTE]
-        │                                HTTP → microservicio ia_service
+        ├── IA_SERVICE_URL definido ──► reconocer_zona_con_ia(foto)        [LISTO]
+        │                                HTTP → ia_service (FastAPI + YOLOv8, puerto 8001)
+        │                                si falla o tarda > 5 s → simulación + aviso
         ├── modelos en ml/models/ ────► reconocer_zona_modelo_local(foto)  [LISTO]
         │                                1. YOLOv8 detecta objetos (letrero, puerta…)
         │                                2. TF-IDF + RandomForest: objetos → zona
@@ -218,7 +222,7 @@ vision/services.py
 | 2 | `preparar_datos_clasificador.py`: pasa YOLO por fotos clasificadas por zona | `dataset/clasificador.csv` (`image_id, objects, zone`) |
 | 3 | `entrenar_clasificador.py`: TF-IDF + RandomForest (1000 árboles) | `models/zone_classifier.pkl`, `models/tfidf.pkl` y la precisión frente a la meta del 65 % |
 
-Los modelos se cargan **una sola vez** (`lru_cache`). La primera foto tarda más y las
+Los modelos se cargan **una sola vez** (se guardan en el diccionario `modelos_en_memoria`). La primera foto tarda más y las
 siguientes reutilizan los modelos en memoria. Si YOLO no detecta ningún objeto, el resultado
 es semáforo **rojo**.
 
