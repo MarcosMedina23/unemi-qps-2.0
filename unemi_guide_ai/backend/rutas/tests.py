@@ -92,6 +92,10 @@ class ApiRutasTests(TestCase):
         self.assertEqual(datos["tiempo_minutos"], 2)  # 145 m a 1.4 m/s
         self.assertEqual(len(datos["escena"]["zonas"]), 5)
         self.assertEqual(datos["escena"]["destino"], "Lab. Computación 3")  # Para Unity
+        # Para el modo "A tiempo real": el GPS se pasa a metros con este (0, 0)
+        referencia = datos["escena"]["referencia"]
+        self.assertEqual((referencia["lat"], referencia["lng"]), (-2.1497, -79.6036))
+        self.assertGreater(referencia["metros_por_grado"], 111000)
         self.ruta.refresh_from_db()
         self.assertTrue(self.ruta.camino_json)  # Quedó guardado
 

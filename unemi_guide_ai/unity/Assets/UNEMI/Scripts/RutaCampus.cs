@@ -42,6 +42,8 @@ namespace UNEMI.Campus
         readonly List<Vector3> camino = new List<Vector3>();
         int indice;
         bool andando, pausado;
+        bool modoGps;            // true = la personita sigue el GPS (web "A tiempo real")
+        Vector3 objetivoGps;
         string nombreDestino = "";
         string mensaje = "Toca un destino en la web o usa la demo.";
 
@@ -96,8 +98,35 @@ namespace UNEMI.Campus
 
         public void Replay(string _ = "")
         {
+            modoGps = false;
             if (camino.Count == 0) return;
             Empezar(new List<Vector3>(camino), nombreDestino);
+        }
+
+        /// <summary>
+        /// Modo "A tiempo real" de la web: posición del GPS del celular en metros de la
+        /// escena, como texto "x,z" (X = este, Z = sur → en Unity z = -Z). La personita
+        /// camina suave hasta ese punto. "Replay" vuelve al modo referencial.
+        /// </summary>
+        public void PosicionGps(string xz)
+        {
+            string[] partes = xz.Split(',');
+            float x, z;
+            var cultura = System.Globalization.CultureInfo.InvariantCulture;
+            if (partes.Length != 2 ||
+                !float.TryParse(partes[0], System.Globalization.NumberStyles.Float, cultura, out x) ||
+                !float.TryParse(partes[1], System.Globalization.NumberStyles.Float, cultura, out z)) return;
+
+            objetivoGps = new Vector3(x, 0.12f, -z);
+            if (!modoGps && persona != null)
+            {
+                persona.EnRuta = true;            // la mueve este script, no el teclado
+                persona.ColocarEn(objetivoGps);   // primera lectura: aparece de golpe
+                if (camara != null) camara.Seguir(persona.transform, 40f);
+            }
+            modoGps = true;
+            andando = false;
+            mensaje = "Siguiendo tu GPS hacia " + nombreDestino;
         }
 
         /// <summary>Lo usa ApiClient desde Unity de escritorio.</summary>
@@ -234,6 +263,7 @@ namespace UNEMI.Campus
         void Update()
         {
             MedirFps();
+            if (modoGps && persona != null) { SeguirGps(); return; }
             if (!EstaAndando || persona == null) return;
 
             Transform t = persona.transform;
@@ -249,6 +279,21 @@ namespace UNEMI.Campus
                 indice++;
                 if (indice >= camino.Count) Llegar();
             }
+        }
+
+        /// <summary>Acerca a la personita al último punto del GPS (más rápido si quedó lejos).</summary>
+        void SeguirGps()
+        {
+            Transform t = persona.transform;
+            Vector3 falta = objetivoGps - t.position; falta.y = 0f;
+            float distancia = falta.magnitude;
+            if (distancia > 60f) { persona.ColocarEn(objetivoGps); return; }   // salto grande del GPS
+            if (distancia < 0.05f) return;
+
+            float rapidez = Mathf.Max(1.5f, distancia * 3f);
+            t.position = Vector3.MoveTowards(t.position, objetivoGps, rapidez * Time.deltaTime);
+            if (distancia > 0.3f)
+                t.rotation = Quaternion.RotateTowards(t.rotation, Quaternion.LookRotation(falta), velocidadGiro * Time.deltaTime);
         }
 
         void Llegar()

@@ -201,6 +201,18 @@
     color: var(--color-rojo);
 }
 
+.alerta--aviso {
+    margin: 0 0 16px;
+    background-color: #FFF4E0;
+    color: #8A4B00;
+    line-height: 1.45;
+}
+
+.alerta code {
+    font-size: 0.85em;
+    word-break: break-all;
+}
+
 /* --------------------------------------------------------------------------
    Mostrar / ocultar contraseña (elementos creados por password.js)
    -------------------------------------------------------------------------- */

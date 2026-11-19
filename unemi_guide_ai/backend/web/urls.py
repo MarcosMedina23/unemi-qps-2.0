@@ -19,6 +19,8 @@ CONTEXTO_VERSION = {"version": settings.VERSION_ESTATICOS}
 
 urlpatterns = [
     path("", views.InicioView.as_view(), name="inicio"),
+    # Archivos del build WebGL de Unity (con Content-Encoding si vienen comprimidos)
+    path("unity/<str:nombre>", views.archivo_unity, name="unity_archivo"),
     # --- Sesión ---
     path(
         "login/",
@@ -35,7 +37,8 @@ urlpatterns = [
     # --- Recuperar contraseña (4 pasos) ---
     path(
         "recuperar/",
-        auth_views.PasswordResetView.as_view(
+        # Igual a PasswordResetView, pero muestra los errores del servidor de correo
+        views.RecuperarClaveView.as_view(
             template_name="recuperar/clave_form.html",
             form_class=FormularioRecuperarClave,
             email_template_name="recuperar/clave_email.txt",

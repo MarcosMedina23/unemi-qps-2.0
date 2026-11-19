@@ -9,8 +9,8 @@
  * "contextos seguros" (https:// o http://localhost). Si se abre la app
  * por http://IP_DE_LA_PC:8000 desde el celular, la cámara en vivo no
  * está disponible y se usa "Subir desde galería" (que en el celular
- * también permite tomar una foto). Con el túnel de Cloudflare (https)
- * la cámara en vivo sí funciona.
+ * también permite tomar una foto). En el servidor con https (AWS) la
+ * cámara en vivo sí funciona.
  * ==========================================================================
  */
 const Camara = (() => {

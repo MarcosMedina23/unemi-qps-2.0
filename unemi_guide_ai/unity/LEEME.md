@@ -77,12 +77,26 @@ busca el destino por nombre y camina por las calles con su propio Dijkstra (`Gra
 
 Sin build de Unity, la web dibuja este mismo campus con Three.js. Para que muestre **Unity**:
 
-1. **File → Build Settings → WebGL → Switch Platform**.
-2. **Player Settings → Publishing Settings → Compression Format: Disabled**.
-3. **Build** y elige una carpeta llamada **`unemi`** (los archivos salen como `unemi.loader.js`,
-   `unemi.data`, `unemi.framework.js`, `unemi.wasm`).
-4. Copia el contenido de `unemi\Build\` a `backend\web\static\web\unity\Build\`.
-5. Reinicia `runserver`. La pantalla «Recorrido en 3D» carga Unity sola y le envía la ruta.
+**Una sola vez:** instala **Unity Hub**, inicia sesión (licencia Personal gratis) y agrega un
+editor **6000.x LTS** con el módulo **WebGL Build Support**.
+
+**Opción automática (recomendada)**, en PowerShell desde la carpeta `unemi_guide_ai`:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File unity\herramientas\construir_webgl.ps1
+```
+
+Busca Unity, genera la escena del campus, compila el WebGL y copia los archivos a
+`backend\web\static\web\unity\Build\`. Recarga la página y listo.
+
+**Opción desde el editor:** abre la carpeta `unity` en Unity Hub y usa el menú
+**UNEMI → Construir WebGL para la web** (hace lo mismo).
+
+**Opción manual:** File → Build Settings → WebGL → Build, y copia el contenido de la subcarpeta
+`Build\` a `backend\web\static\web\unity\Build\`. Sirve cualquier nombre y cualquier compresión
+(Disabled, Gzip, Brotli o Decompression Fallback); Brotli puede fallar sin HTTPS.
+
+Si Unity no carga, la web muestra el campus con Three.js y el motivo sale en la consola (F12).
 
 - **Unity WebGL dentro de la web:** `backend/web/static/web/js/simulacion.js` envía la ruta con
   `unityInstance.SendMessage("RouteAnimator", "LoadWaypoints", json)`, y también `SetVelocidad`,
@@ -167,6 +181,8 @@ de `Editor/UNEMICampusBuilder.cs`.
 | `Scripts/GrafoCalles.cs` | Grafo de calles + Dijkstra |
 | `Scripts/CampusCameraController.cs` | Cámara (mouse, teclado, táctil) y modo seguir |
 | `Scripts/ApiClient.cs` | Llama a la API de Django |
+| `Editor/ConstruirWebGL.cs` | Menú *UNEMI → Construir WebGL para la web* y build sin abrir Unity |
+| `herramientas/construir_webgl.ps1` | Ejecuta ese build desde PowerShell |
 | `herramientas/gen_web.py` | Crea `campus_unemi.json` (web y Django) desde `campus_data.py` |
 | `Scripts/CampusGeoReference.cs` | GPS real ↔ posición en Unity |
 | `Scripts/LabelBillboard.cs` | Carteles de nombres que miran a la cámara |

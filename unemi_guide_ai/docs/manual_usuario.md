@@ -13,7 +13,7 @@ Este manual tiene dos partes:
 
 ## 1. Ingresar
 
-1. Abre el enlace de la app que te dieron (por ejemplo, `https://….trycloudflare.com`).
+1. Abre el enlace de la app que te dio la universidad.
 2. Escribe el **usuario** y la **contraseña** que te entregó la universidad.
 3. Pulsa el ícono del ojo 👁 si quieres ver la contraseña mientras la escribes.
 4. Pulsa **Ingresar**.
@@ -93,14 +93,22 @@ Pulsa **Ver recorrido en 3D**.
 
 ## 8. Recorrido 3D
 
-Un **cubo naranja** recorre el camino sobre un modelo del campus. Arriba se muestra la
-indicación del tramo actual.
+Una **personita** («Tú») recorre el camino naranja sobre el campus en 3D. Al costado (en el
+celular, debajo) está el panel **Direcciones**: el paso actual en grande, el siguiente giro,
+cuánto falta y la lista de todos los pasos.
+
+Arriba del panel eliges el modo:
+
+| Modo | Qué hace |
+|---|---|
+| **Referencial** | La personita camina sola para mostrarte el camino |
+| **A tiempo real** | La personita se mueve contigo con el GPS del celular. Acepta el permiso de ubicación. Te avisa si te sales de la ruta y cuando llegas. Necesita que la app se abra con `https` |
 
 | Botón | Acción |
 |---|---|
-| **Pausar / Continuar** | Detiene o sigue la animación |
-| **Repetir** | Vuelve a empezar desde el origen |
-| **Finalizar recorrido** | Pasa a la pantalla de llegada. Parpadea cuando el cubo llega |
+| **Pausar / Continuar** | Detiene o sigue la animación (solo en Referencial) |
+| **Repetir** | Vuelve a empezar desde el origen (solo en Referencial) |
+| **Finalizar recorrido** | Pasa a la pantalla de llegada. Parpadea cuando llegas |
 
 Puedes **arrastrar** para girar la vista y usar la **rueda** del ratón (o pellizcar) para
 acercar.
@@ -139,35 +147,12 @@ Entra a **`/admin/`** con tu superusuario.
    Después usa la acción **«Recalcular distancia y camino»** en las rutas.
 6. **Historial:** solo se puede ver; lo generan los estudiantes con el uso.
 
-## Compartir el enlace con estudiantes
+## Dar acceso a un estudiante
 
-Para que otra persona entre desde su celular o computadora, aunque esté en otra red:
-
-**Forma fácil:**
-1. Haz doble clic en **`compartir_enlace.bat`**, en la carpeta `unemi_guide_ai`.
-2. Espera a que aparezca el enlace `https://….trycloudflare.com`. Ya queda copiado.
-3. Pégalo con `Ctrl + V` en WhatsApp o correo.
-4. Cuando termines, presiona **Enter** en esa ventana para cerrar el enlace.
-
-**Forma manual:**
-
-1. **Terminal 1:** arranca el servidor con `python manage.py runserver`, dentro de `backend`
-   y con el venv activo.
-2. **Terminal 2:** ejecuta `cloudflared tunnel --url http://localhost:8000`.
-   - La primera vez instálalo con `winget install --id Cloudflare.cloudflared` y vuelve a
-     abrir PowerShell.
-3. Copia el enlace `https://….trycloudflare.com` que aparece y compártelo.
-4. Crea la cuenta del estudiante en **Usuarios** (sin «Staff status») y envíale su usuario y
-   su contraseña.
-
-**Ten en cuenta:**
-- El enlace funciona solo mientras tu PC esté encendida y las dos terminales abiertas.
-- El enlace cambia cada vez que ejecutas `cloudflared`.
-- Cierra el túnel con `Ctrl + C` cuando termines.
-
-Si están en tu misma red Wi-Fi, otra opción es `python manage.py runserver 0.0.0.0:8000` y
-compartir `http://TU_IP:8000` (tu IP sale con `ipconfig`). En ese caso la cámara en vivo no
-funciona y hay que usar «Subir desde galería».
+No hay registro público. Para que un estudiante entre:
+1. En **Usuarios → Añadir usuario**, crea su cuenta **sin** «Staff status» y con su correo
+   institucional (lo necesita para recuperar la contraseña).
+2. Envíale el enlace de la app, su usuario y su contraseña.
 
 ## Datos de prueba
 

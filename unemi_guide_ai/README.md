@@ -83,9 +83,6 @@ unemi_guide_ai/
 ├── database/
 │   ├── init.sql              Esquema de las tablas (referencia)
 │   └── seed_data.sql         Datos de prueba en SQL (referencia; usa loaddata)
-├── scripts/
-│   └── compartir_enlace.ps1  Crea el enlace público https (lo usa compartir_enlace.bat)
-├── compartir_enlace.bat      Doble clic: comparte la app con un enlace público
 ├── docs/
 │   ├── README.md             Índice y glosario
 │   ├── arquitectura.md       Arquitectura, API, algoritmo y modelo de datos
@@ -246,72 +243,30 @@ Los nombres de zonas/destinos del admin deben parecerse a los del campus 3D («B
 
 ---
 
-## Compartir el enlace con otra persona
+## Probar desde el celular
 
-### Opción A · Enlace público con Cloudflare (recomendada)
-
-Crea un enlace `https://…trycloudflare.com` que apunta a tu PC. Cualquiera con el enlace
-puede entrar desde su celular o computadora, aunque esté en otra red, y la cámara en vivo
-funciona porque es `https`. `settings.py` ya acepta estos enlaces (`CSRF_TRUSTED_ORIGINS`).
-
-**La forma fácil: doble clic en `compartir_enlace.bat`** (carpeta raíz del proyecto).
-
-El script hace todo solo:
-1. Instala `cloudflared` la primera vez. Windows puede pedirte permiso.
-2. Enciende el servidor, o usa el que ya esté encendido.
-3. Muestra el enlace en grande y lo **copia al portapapeles**. Solo pégalo con `Ctrl + V`
-   en WhatsApp o correo.
-4. Al presionar **Enter** en esa ventana, cierra el enlace.
-
-La lógica está en `scripts/compartir_enlace.ps1`.
-
-**La forma manual** (lo mismo, paso a paso):
-
-**Paso 1 · Instalar cloudflared** (solo la primera vez):
-```powershell
-winget install --id Cloudflare.cloudflared
-```
-Al terminar, **cierra PowerShell y ábrelo de nuevo** para que reconozca el comando.
-
-**Paso 2 · Terminal 1: arrancar el servidor**
-```powershell
-cd "C:\Users\USER\Downloads\GPS UNEMI\unemi_guide_ai"
-venv\Scripts\activate
-cd backend
-python manage.py runserver
-```
-
-**Paso 3 · Terminal 2 (otra ventana): abrir el túnel**
-```powershell
-cloudflared tunnel --url http://localhost:8000
-```
-A los pocos segundos aparece un enlace como `https://palabras-al-azar-1234.trycloudflare.com`.
-**Ese es el link que compartes.**
-
-**Paso 4 · Crear la cuenta de la otra persona**
-
-No hay registro público, así que sin una cuenta no podrá pasar del login:
-1. Entra a `/admin/` → **Usuarios → Añadir usuario** y crea su cuenta **sin** «Staff status».
-2. Envíale el link, su usuario y su contraseña.
-
-**Ten en cuenta:**
-- Tu PC debe seguir **encendida** y con las **dos terminales abiertas**. Si cierras una, el
-  link deja de funcionar.
-- El link **cambia cada vez** que vuelves a ejecutar `cloudflared`: envía el nuevo.
-- Mientras el túnel esté abierto, tu PC es accesible desde internet. Usa una contraseña fuerte
-  en el superusuario y cierra el túnel con `Ctrl + C` al terminar la demostración.
-
-### Opción B · Misma red Wi-Fi (sin instalar nada)
+### Misma red Wi-Fi (desarrollo)
 
 ```powershell
 python manage.py runserver 0.0.0.0:8000
 ```
 1. Busca tu IP con `ipconfig` (línea «Dirección IPv4», por ejemplo `192.168.1.25`).
-2. Comparte `http://192.168.1.25:8000`.
+2. Abre `http://192.168.1.25:8000` en el celular.
 
 - Si Windows pregunta por el firewall, permite el acceso en **redes privadas**.
-- Por `http` la cámara en vivo no funciona: hay que usar «Subir desde galería», que en el
-  celular también deja tomar la foto.
+- Por `http` el navegador **bloquea la cámara en vivo y el GPS**: la foto se toma con
+  «Subir desde galería» y el recorrido funciona en modo **Referencial**. El modo
+  **A tiempo real** necesita `https`.
+
+### Servidor en internet (AWS · pendiente)
+
+La app se publicará en AWS con un dominio fijo y **HTTPS**, encendida todo el tiempo. Con
+HTTPS funcionan la cámara en vivo y el GPS del modo **A tiempo real**. Al desplegar:
+
+- `DJANGO_DEBUG=False`
+- `DJANGO_ALLOWED_HOSTS=tu-dominio.com`
+- `DJANGO_CSRF_TRUSTED_ORIGINS=https://tu-dominio.com`
+- `python manage.py collectstatic` y un servidor de producción (por ejemplo Gunicorn + Nginx).
 
 ---
 
@@ -321,7 +276,7 @@ python manage.py runserver 0.0.0.0:8000
 python manage.py test
 ```
 
-Son 46 pruebas. Cubren:
+Son 54 pruebas. Cubren:
 - **API:** acceso solo con sesión, solo lectura, filtros, 404, semáforo rojo con error 400 y
   tiempo de reconocimiento ≤ 5 s.
 - **Microservicio de IA:** zona según la detección, sin detecciones, y caída automática a la
@@ -377,8 +332,8 @@ carpetas de `ml/dataset/zonas/` deben ser **iguales** a los nombres de las zonas
 - **Probar `ia_service` con el `best.pt` real.** El servicio y la integración se probaron con
   un YOLO falso, porque PyTorch no está instalado aquí.
 - **Unity:** calibrar el GPS del campus (`CampusGeoReference`) y publicar el build WebGL en la web.
-- **Servidor en la nube** con enlace fijo, HTTPS y PostgreSQL. También hay que decidir dónde
-  corre YOLO.
+- **Servidor en AWS** con dominio fijo, HTTPS y PostgreSQL (ver «Servidor en internet»).
+  También hay que decidir dónde corre YOLO.
 - **AWS S3** con django-storages: el bloque de configuración ya está comentado en `settings.py`.
 - **Seguridad antes de entregar:**
   - cambiar la contraseña de aplicación de Gmail si estuvo expuesta;

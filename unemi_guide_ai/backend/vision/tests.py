@@ -5,7 +5,7 @@ Ejecutar: python manage.py test vision
 from unittest import mock
 
 import requests
-from django.test import SimpleTestCase, override_settings
+from django.test import SimpleTestCase, TestCase, override_settings
 
 from zonas.tests import foto_jpeg
 
@@ -48,8 +48,9 @@ class GeometriaTests(SimpleTestCase):
         self.assertEqual(a_coordenadas(x, z, -2.1497, -79.6036), (-2.149, -79.603))
 
 
-class ReconocimientoSimuladoTests(SimpleTestCase):
+class ReconocimientoSimuladoTests(TestCase):
     def test_formato_y_rangos(self):
+        # Sin zonas registradas usa la zona por defecto.
         resultado = reconocer_zona_simulado(foto_jpeg(), cantidad=3)
         self.assertEqual(resultado["zona"], "Bloque A")
         self.assertTrue(0.65 <= resultado["confianza"] <= 0.98)
@@ -77,7 +78,7 @@ class VectorizadorFalso:
         return textos
 
 
-class ModoLocalTests(SimpleTestCase):
+class ModoLocalTests(TestCase):
     def test_predecir_zona_une_los_objetos_y_elige_la_mas_probable(self):
         vectorizador = VectorizadorFalso()
         zona, confianza = predecir_zona(["letrero", "puerta"], ClasificadorFalso(), vectorizador)
@@ -119,7 +120,7 @@ class RespuestaFalsa:
 
 
 @override_settings(IA_SERVICE_URL="http://127.0.0.1:8001/predict")
-class MicroservicioIaTests(SimpleTestCase):
+class MicroservicioIaTests(TestCase):
     def simular_post(self, **kwargs):
         return mock.patch("vision.services.requests.post", **kwargs)
 

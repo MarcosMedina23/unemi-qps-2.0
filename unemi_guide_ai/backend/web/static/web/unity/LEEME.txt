@@ -1,5 +1,6 @@
 Aquí va el build WebGL de Unity (opcional).
 
-Cuando exista Build/unemi.loader.js, la pantalla "Recorrido en 3D" de la web
-muestra Unity en lugar de la versión Three.js. Pasos en unity/LEEME.md
-(sección "Mostrar Unity dentro de la web").
+Copia en la carpeta Build/ el contenido de la carpeta Build del build WebGL
+(*.loader.js, *.data, *.framework.js, *.wasm; sin comprimir, .gz, .br o .unityweb).
+Con eso la pantalla "Recorrido en 3D" muestra Unity en lugar de Three.js.
+Pasos en unity/LEEME.md (sección "Mostrar Unity dentro de la web").

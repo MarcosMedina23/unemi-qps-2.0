@@ -225,18 +225,54 @@
             <header class="pantalla__encabezado">
                 <h1 class="pantalla__titulo" id="titulo-recorrido">Recorrido en 3D</h1>
             </header>
-            <div class="escena">
-                <div class="escena__lienzo" id="escena-3d" data-campus="{% static 'web/data/campus_unemi.json' %}?v={{ version }}"{% if unity_disponible %} data-unity="{% static 'web/unity/Build/unemi' %}"{% endif %}></div>
-                <p class="escena__indicacion" id="escena-indicacion" aria-live="polite"></p>
-                <span class="escena__fps" id="escena-fps" title="Cuadros por segundo (meta: 30 o más)"></span>
-                <p class="escena__error" id="escena-error" hidden>No se pudo cargar la vista 3D. Revisa tu conexión a internet.</p>
-                <p class="escena__ayuda">Arrastra para girar · rueda o pellizco para acercar</p>
-            </div>
-            <progress class="escena__progreso" id="escena-progreso" max="100" value="0">0 %</progress>
-            <div class="acciones acciones--centradas">
-                <button class="boton boton--contorno" id="boton-pausar" type="button">Pausar</button>
-                <button class="boton boton--contorno" id="boton-repetir" type="button">Repetir</button>
-                <button class="boton boton--primario" id="boton-finalizar" type="button">Finalizar recorrido</button>
+            <div class="recorrido">
+                <div class="recorrido__principal">
+                    <div class="escena">
+                        <div class="escena__lienzo" id="escena-3d" data-campus="{% static 'web/data/campus_unemi.json' %}?v={{ version }}"{% if unity %} data-unity-loader="{{ unity.loader }}" data-unity-data="{{ unity.data }}" data-unity-framework="{{ unity.framework }}" data-unity-codigo="{{ unity.codigo }}"{% endif %}></div>
+                        <p class="escena__indicacion" id="escena-indicacion"></p>
+                        <span class="escena__fps" id="escena-fps" title="Cuadros por segundo (meta: 30 o más)"></span>
+                        <p class="escena__error" id="escena-error" hidden>No se pudo cargar la vista 3D.</p>
+                        <p class="escena__ayuda">Arrastra para girar · rueda o pellizco para acercar</p>
+                    </div>
+                    <progress class="escena__progreso" id="escena-progreso" max="100" value="0">0 %</progress>
+                    <div class="acciones acciones--centradas">
+                        <button class="boton boton--contorno" id="boton-pausar" type="button">Pausar</button>
+                        <button class="boton boton--contorno" id="boton-repetir" type="button">Repetir</button>
+                        <button class="boton boton--primario" id="boton-finalizar" type="button">Finalizar recorrido</button>
+                    </div>
+                </div>
+
+                <!-- Panel de direcciones (GPS) al costado de la escena -->
+                <aside class="tarjeta direcciones" aria-labelledby="titulo-direcciones">
+                    <div class="modo" role="group" aria-label="Modo del recorrido">
+                        <button class="modo__boton modo__boton--activo" type="button" data-modo="referencial" aria-pressed="true">
+                            <svg class="modo__icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+                            Referencial
+                        </button>
+                        <button class="modo__boton" type="button" data-modo="tiempo-real" aria-pressed="false">
+                            <svg class="modo__icono" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="7"/></svg>
+                            A tiempo real
+                        </button>
+                    </div>
+                    <p class="modo__ayuda" id="modo-ayuda">La personita camina sola para mostrarte el camino.</p>
+                    <p class="gps-estado" id="gps-estado" role="status" hidden></p>
+
+                    <div class="paso-actual" aria-live="polite">
+                        <span class="paso-actual__icono" id="paso-icono" aria-hidden="true"></span>
+                        <div class="paso-actual__datos">
+                            <p class="paso-actual__texto" id="paso-texto">Preparando la ruta…</p>
+                            <p class="paso-actual__siguiente" id="paso-siguiente"></p>
+                        </div>
+                    </div>
+
+                    <dl class="direcciones__resumen">
+                        <div><dt>Faltan</dt><dd id="direcciones-faltan">—</dd></div>
+                        <div><dt>Tiempo aprox.</dt><dd id="direcciones-tiempo">—</dd></div>
+                    </dl>
+
+                    <h2 class="direcciones__titulo" id="titulo-direcciones">Direcciones</h2>
+                    <ol class="direcciones__lista" id="direcciones-lista"></ol>
+                </aside>
             </div>
         </section>
 
@@ -304,14 +340,15 @@
         <p class="cargando__texto" id="cargando-texto">Cargando…</p>
     </div>
 
-    <!-- Three.js r128 (versión global) y controles de órbita, desde CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" defer></script>
+    <!-- Three.js r128 (versión global) y controles de órbita, archivos locales (funciona sin internet) -->
+    <script src="{% static 'web/js/three.min.js' %}?v={{ version }}" defer></script>
+    <script src="{% static 'web/js/OrbitControls.js' %}?v={{ version }}" defer></script>
     <!-- Módulos propios: app.js va al final porque usa a los demás -->
     <script src="{% static 'web/js/api.js' %}?v={{ version }}" defer></script>
     <script src="{% static 'web/js/camera.js' %}?v={{ version }}" defer></script>
     <script src="{% static 'web/js/campus.js' %}?v={{ version }}" defer></script>
     <script src="{% static 'web/js/ruta.js' %}?v={{ version }}" defer></script>
+    <script src="{% static 'web/js/gps.js' %}?v={{ version }}" defer></script>
     <script src="{% static 'web/js/simulacion.js' %}?v={{ version }}" defer></script>
     <script src="{% static 'web/js/app.js' %}?v={{ version }}" defer></script>
 </body>

@@ -1,0 +1,9 @@
+# Carpetas que crea Unity (no se suben)
+Library/
+Temp/
+Obj/
+Logs/
+UserSettings/
+Builds/
+*.csproj
+*.sln

@@ -27,6 +27,19 @@ MENSAJE_SIN_DATOS = "No hay datos disponibles."
 MENSAJE_NO_RECONOCIDA = "No pudimos reconocer tu ubicación, intenta con mejor iluminación."
 
 
+# Nombres de la demo / del modelo de IA que en el campus real tienen otro nombre
+# (los mismos equivalentes que usa rutas/management/commands/cargar_campus.py).
+ALIAS_ZONAS = {"bloque a": "Bloque T (FACI)", "biblioteca central": "CRAI"}
+
+
+def buscar_zona(nombre):
+    """Zona por nombre exacto; si no existe, por su equivalente en el campus real."""
+    zona = Zona.objects.filter(nombre__iexact=nombre).first()
+    if zona is None and nombre.lower() in ALIAS_ZONAS:
+        zona = Zona.objects.filter(nombre__iexact=ALIAS_ZONAS[nombre.lower()]).first()
+    return zona
+
+
 def respuesta_sin_datos():
     """Respuesta 404 estándar del proyecto: {"detalle": "No hay datos disponibles."}."""
     return Response({"detalle": MENSAJE_SIN_DATOS}, status=status.HTTP_404_NOT_FOUND)
@@ -98,7 +111,7 @@ class ZonaViewSet(SinDatosMixin, viewsets.ReadOnlyModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        zona = Zona.objects.filter(nombre__iexact=resultado["zona"]).first()
+        zona = buscar_zona(resultado["zona"])
         if zona is None:
             # La IA devolvió una zona que el administrador aún no registró.
             return respuesta_sin_datos()

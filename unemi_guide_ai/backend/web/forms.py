@@ -7,7 +7,8 @@ atributos de accesibilidad: la validación es la oficial de Django.
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm, PasswordResetForm, SetPasswordForm
-from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives, send_mail
+from django.template import loader
 
 CLASE_CAMPO = "campo__entrada"
 
@@ -40,6 +41,30 @@ class FormularioRecuperarClave(PasswordResetForm):
         super().__init__(*args, **kwargs)
         self.fields["email"].label = "Correo electrónico"
         _estilizar(self.fields, {"email": {"autocomplete": "email", "autofocus": True}})
+
+    def send_mail(
+        self,
+        subject_template_name,
+        email_template_name,
+        context,
+        from_email,
+        to_email,
+        html_email_template_name=None,
+    ):
+        """
+        Igual que el de Django, pero SIN ocultar los errores de envío.
+
+        Django (4.1+) atrapa cualquier error del servidor de correo y solo lo
+        escribe en el log, así que la página decía «te enviamos el enlace»
+        aunque el correo nunca saliera. Aquí el error sube a la vista
+        (RecuperarClaveView), que muestra un mensaje claro.
+        """
+        asunto = "".join(loader.render_to_string(subject_template_name, context).splitlines())
+        cuerpo = loader.render_to_string(email_template_name, context)
+        mensaje = EmailMultiAlternatives(asunto, cuerpo, from_email, [to_email])
+        if html_email_template_name:
+            mensaje.attach_alternative(loader.render_to_string(html_email_template_name, context), "text/html")
+        mensaje.send()
 
 
 class FormularioNuevaClave(SetPasswordForm):

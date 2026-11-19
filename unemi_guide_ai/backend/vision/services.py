@@ -29,8 +29,16 @@ from PIL import Image, ImageOps
 
 logger = logging.getLogger(__name__)
 
-# Zona que devuelve la simulación. Debe existir en el admin con este nombre.
+# Zona que devuelve la simulación si todavía no hay zonas registradas en el admin.
 ZONA_SIMULADA = "Bloque A"
+
+
+def elegir_zona_simulada():
+    """Una zona registrada al azar (cada foto te ubica en un lugar distinto)."""
+    from zonas.models import Zona  # Import aquí para no crear un ciclo al cargar Django
+
+    nombre = Zona.objects.order_by("?").values_list("nombre", flat=True).first()
+    return nombre or ZONA_SIMULADA
 
 # Rango de confianza que inventa la simulación.
 CONFIANZA_MINIMA_SIMULADA = 0.65
@@ -77,6 +85,7 @@ def reconocer_zona_simulado(foto, cantidad=5):
         ancho, alto = imagen.size
     foto.seek(0)  # Regresamos al inicio para poder leer la foto otra vez.
 
+    zona = elegir_zona_simulada()
     confianza = round(random.uniform(CONFIANZA_MINIMA_SIMULADA, CONFIANZA_MAXIMA_SIMULADA), 2)
 
     detecciones = []
@@ -87,14 +96,14 @@ def reconocer_zona_simulado(foto, cantidad=5):
         y2 = random.randint(y1 + 1, alto)
         confianza_caja = round(random.uniform(CONFIANZA_MINIMA_SIMULADA, confianza), 2)
         detecciones.append(
-            {"clase": ZONA_SIMULADA, "confianza": confianza_caja, "caja": [x1, y1, x2, y2]}
+            {"clase": zona, "confianza": confianza_caja, "caja": [x1, y1, x2, y2]}
         )
 
     # Ordenamos de mayor a menor confianza; la primera es la principal.
     detecciones.sort(key=lambda d: d["confianza"], reverse=True)
     detecciones[0]["confianza"] = confianza
 
-    return armar_resultado(ZONA_SIMULADA, confianza, detecciones, "simulado")
+    return armar_resultado(zona, confianza, detecciones, "simulado")
 
 
 # ----------------------------------------------------------------------

@@ -20,7 +20,7 @@ import math
 
 import networkx as nx
 
-from vision.utils import a_coordenadas, a_metros_locales
+from vision.utils import METROS_POR_GRADO, a_coordenadas, a_metros_locales
 from zonas.models import Zona
 
 from .mapa_campus import CONEXIONES_PASILLOS, PASILLOS, PASILLOS_POR_ZONA
@@ -348,4 +348,15 @@ def construir_escena(ruta):
         camino.append({"x": x, "z": z, "instruccion": punto.get("instruccion", "")})
 
     # "destino" lo usa Unity para buscar el lugar en el campus 3D (ej: "Aula K-301").
-    return {"destino": ruta.destino.nombre, "zonas": zonas, "camino": camino}
+    # "referencia" permite a la web pasar el GPS del celular (lat/lng) a estos
+    # mismos metros, para el modo "A tiempo real" del recorrido.
+    return {
+        "destino": ruta.destino.nombre,
+        "zonas": zonas,
+        "camino": camino,
+        "referencia": {
+            "lat": LAT_REFERENCIA,
+            "lng": LNG_REFERENCIA,
+            "metros_por_grado": METROS_POR_GRADO,
+        },
+    }

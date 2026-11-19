@@ -92,11 +92,12 @@ class ReconocimientoTests(TestCase):
         self.zonas, _ = crear_campus_de_prueba()
         self.client.login(username=crear_estudiante().username, password=CLAVE_PRUEBA)
 
-    def test_reconoce_bloque_a_con_semaforo(self):
+    def test_reconoce_zona_registrada_con_semaforo(self):
         datos = self.client.post("/api/zonas/reconocer/", {"foto": foto_jpeg()}).json()
         self.assertTrue(datos["reconocida"])
         self.assertIn(datos["semaforo"], {"verde", "amarillo"})
-        self.assertEqual(datos["zona"]["nombre"], "Bloque A")
+        # La simulación ubica al estudiante en una zona registrada al azar.
+        self.assertIn(datos["zona"]["nombre"], set(Zona.objects.values_list("nombre", flat=True)))
         self.assertTrue(0.65 <= datos["confianza"] <= 0.98)
         self.assertEqual(len(datos["detecciones"]), 5)
         self.assertTrue(datos["simulado"])
@@ -109,8 +110,16 @@ class ReconocimientoTests(TestCase):
 
     def test_zona_no_registrada_devuelve_404(self):
         Zona.objects.filter(nombre="Bloque A").delete()
-        respuesta = self.client.post("/api/zonas/reconocer/", {"foto": foto_jpeg()})
+        with mock.patch("vision.services.elegir_zona_simulada", return_value="Bloque A"):
+            respuesta = self.client.post("/api/zonas/reconocer/", {"foto": foto_jpeg()})
         self.assertEqual(respuesta.status_code, 404)
+
+    def test_bloque_a_se_ubica_en_el_bloque_t_del_campus_real(self):
+        # En el campus real (cargar_campus) no hay "Bloque A": es el Bloque T (FACI).
+        Zona.objects.filter(nombre="Bloque A").update(nombre="Bloque T (FACI)")
+        with mock.patch("vision.services.elegir_zona_simulada", return_value="Bloque A"):
+            datos = self.client.post("/api/zonas/reconocer/", {"foto": foto_jpeg()}).json()
+        self.assertEqual(datos["zona"]["nombre"], "Bloque T (FACI)")
 
     def test_sin_zona_detectada_devuelve_semaforo_rojo(self):
         sin_objetos = {

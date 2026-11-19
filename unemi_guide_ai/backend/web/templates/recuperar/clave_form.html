@@ -22,8 +22,15 @@
             <h1 class="acceso__titulo" id="titulo-acceso">Recuperar contraseña</h1>
             <p class="acceso__texto">Escribe el correo de tu cuenta y te enviaremos un enlace para crear una nueva contraseña.</p>
 
+            {% if correo_sin_configurar %}
+                <p class="alerta alerta--aviso"><strong>Modo desarrollo:</strong> el correo NO se envía de verdad porque falta <code>EMAIL_HOST_PASSWORD</code> en <code>backend/.env</code>. El enlace aparece en la consola de <code>runserver</code>.</p>
+            {% endif %}
+
             <form class="formulario" method="post" novalidate>
                 {% csrf_token %}
+                {% for error in form.non_field_errors %}
+                    <p class="alerta alerta--error" role="alert">{{ error }}</p>
+                {% endfor %}
                 <div class="campo{% if form.email.errors %} campo--invalido{% endif %}">
                     <label class="campo__etiqueta" for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
                     {{ form.email }}
