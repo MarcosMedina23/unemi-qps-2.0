@@ -1,7 +1,7 @@
 {% load static %}<!DOCTYPE html>
 {% comment %}
     Inicio de sesión. Vista: django.contrib.auth.views.LoginView (web/urls.py).
-    No existe "Crea tu cuenta": las cuentas las crea el administrador.
+    "Crear cuenta" lleva a /registro/ (la cuenta se activa por correo).
 {% endcomment %}
 <html lang="es">
 <head>
@@ -24,7 +24,7 @@
             </div>
 
             <h1 class="acceso__titulo" id="titulo-acceso">Iniciar sesión</h1>
-            <p class="acceso__texto">Ingresa con el usuario que te entregó la universidad.</p>
+            <p class="acceso__texto">Ingresa con tu usuario y contraseña.</p>
 
             <form class="formulario" method="post" action="{% url 'login' %}" novalidate>
                 {% csrf_token %}
@@ -53,7 +53,10 @@
                 <a class="acceso__enlace" href="{% url 'recuperar' %}">¿Olvidaste tu contraseña?</a>
                 <a class="acceso__enlace" href="{% url 'recuperar_usuario' %}">¿Olvidaste tu usuario?</a>
             </nav>
-            <p class="acceso__nota">¿No tienes cuenta? Solicítala en la administración de tu facultad.</p>
+            <div class="acceso__registro">
+                <span>¿No tienes cuenta?</span>
+                <a class="boton boton--secundario boton--bloque" href="{% url 'registro' %}">Crear cuenta</a>
+            </div>
         </section>
         <p class="acceso__pie">Universidad Estatal de Milagro · Construcción de Software</p>
     </main>

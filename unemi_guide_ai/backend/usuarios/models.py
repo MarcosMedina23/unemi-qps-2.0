@@ -1,9 +1,10 @@
 """
 Modelos de la app ``usuarios``.
 
-Regla de negocio: NO hay registro público. El administrador crea las
-cuentas de los estudiantes desde /admin/ (sin "Staff status"), por lo que
-un estudiante nunca puede entrar al admin ni modificar datos.
+Cuentas de estudiante: las crea el administrador en /admin/ o el propio
+estudiante en /registro/. Las creadas desde la página nacen inactivas y se
+activan con el enlace que llega al correo. Ningún estudiante tiene
+"Staff status", así que nunca puede entrar al admin ni modificar datos.
 """
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -88,6 +89,14 @@ class Usuario(AbstractUser):
         blank=True,
         validators=[MinValueValidator(1), MaxValueValidator(10)],
         help_text="Del 1 al 10.",
+    )
+    # True mientras una cuenta creada en /registro/ espera que abran el enlace
+    # del correo. Distingue esas cuentas de las que el admin desactivó a mano
+    # (esas NO se pueden reactivar por correo).
+    correo_pendiente = models.BooleanField(
+        "falta activar por correo",
+        default=False,
+        help_text="Cuenta creada desde la página que aún no abrió el enlace de activación.",
     )
 
     objects = UsuarioManager()

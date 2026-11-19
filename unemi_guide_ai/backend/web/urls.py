@@ -1,5 +1,5 @@
 """
-Rutas de la app ``web``: página única, login y recuperación de cuenta.
+Rutas de la app ``web``: página única, login, crear cuenta y recuperación de cuenta.
 
 Se usan las vistas de autenticación de Django con plantillas propias.
 """
@@ -74,6 +74,10 @@ urlpatterns = [
         ),
         name="recuperar_completo",
     ),
+    # --- Crear cuenta (con activación por correo) ---
+    path("registro/", views.RegistroView.as_view(), name="registro"),
+    path("registro/enviado/", views.RegistroEnviadoView.as_view(), name="registro_enviado"),
+    path("activar/<uidb64>/<token>/", views.ActivarCuentaView.as_view(), name="activar_cuenta"),
     # --- Recuperar usuario ---
     path(
         "recuperar-usuario/",

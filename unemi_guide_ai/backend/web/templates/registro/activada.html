@@ -1,0 +1,40 @@
+{% load static %}<!DOCTYPE html>
+{% comment %}
+    Resultado del enlace de activación. Vista: ActivarCuentaView.
+    estado: "activada" | "ya_activa" | "invalido"
+{% endcomment %}
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0D47A1">
+    <title>{% if estado == "invalido" %}Enlace no válido{% else %}Cuenta activada{% endif %} | UNEMI Guide AI</title>
+    <link rel="icon" type="image/png" href="{% static 'web/img/logo.png' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+    <link rel="stylesheet" href="{% static 'web/css/login.css' %}?v={{ version }}">
+</head>
+<body class="acceso">
+    <main class="acceso__contenedor">
+        <section class="acceso__tarjeta acceso__tarjeta--mensaje" aria-labelledby="titulo-acceso">
+            {% if estado == "invalido" %}
+                <span class="acceso__icono" aria-hidden="true">⌛</span>
+                <h1 class="acceso__titulo" id="titulo-acceso">Enlace no válido</h1>
+                <p class="acceso__texto">
+                    El enlace venció (dura 1 hora) o ya no sirve. Inicia sesión con tu usuario y
+                    contraseña: si la cuenta aún no está activada, te enviaremos un enlace nuevo.
+                </p>
+            {% else %}
+                <span class="acceso__icono" aria-hidden="true">✅</span>
+                <h1 class="acceso__titulo" id="titulo-acceso">{% if estado == "activada" %}¡Cuenta activada!{% else %}Tu cuenta ya está activa{% endif %}</h1>
+                <p class="acceso__texto">
+                    Hola {{ usuario.first_name|default:usuario.username }}, ya puedes ingresar con tu usuario
+                    <strong>{{ usuario.username }}</strong> y tu contraseña.
+                </p>
+            {% endif %}
+            <a class="boton boton--primario boton--bloque" href="{% url 'login' %}">Iniciar sesión</a>
+        </section>
+    </main>
+</body>
+</html>

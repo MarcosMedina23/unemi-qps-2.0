@@ -6,28 +6,34 @@ Vistas de la app ``web``.
     /logout/             LogoutView de Django      Solo por POST
     /recuperar/...       Vistas de Django          Recuperar contraseña por correo
     /recuperar-usuario/  RecuperarUsuarioView      Envía el usuario por correo
+    /registro/           RegistroView              Crear cuenta (queda inactiva)
+    /registro/enviado/   RegistroEnviadoView       «Revisa tu correo»
+    /activar/<uid>/<t>/  ActivarCuentaView         Enlace del correo: activa la cuenta
 
-No existe registro público: las cuentas las crea el administrador.
+Las cuentas las crea el administrador en /admin/ o el estudiante en /registro/.
 """
 import logging
 import smtplib
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db import transaction
 from django.http import FileResponse, Http404
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.utils.encoding import force_str
+from django.utils.http import urlsafe_base64_decode
+from django.views import View
 from django.views.generic import FormView, TemplateView
+from django.views.decorators.csrf import ensure_csrf_cookie
 
-from .forms import FormularioRecuperarUsuario
+from .activacion import ERRORES_CORREO, enviar_correo_activacion, ocultar_correo, token_activacion
+from .forms import FormularioRecuperarUsuario, FormularioRegistro
 
 logger = logging.getLogger(__name__)
-
-# Errores posibles al hablar con el servidor de correo (clave mala, sin internet...)
-ERRORES_CORREO = (smtplib.SMTPException, OSError)
 
 
 def correo_configurado():
@@ -179,4 +185,75 @@ class RecuperarUsuarioView(AvisoCorreoMixin, FormView):
             self.request,
             self.template_name,
             {"enviado": True, "version": settings.VERSION_ESTATICOS},
+        )
+
+
+class RegistroView(AvisoCorreoMixin, FormView):
+    """
+    Crear cuenta desde la página. La cuenta se guarda INACTIVA y se envía el
+    enlace de activación. Si el correo no se puede enviar, la cuenta NO se
+    guarda (transacción) y se muestra el error: así se puede intentar de nuevo
+    con el mismo usuario y correo.
+    """
+
+    template_name = "registro/formulario.html"
+    form_class = FormularioRegistro
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect("inicio")
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        try:
+            with transaction.atomic():
+                usuario = form.save()
+                enviar_correo_activacion(self.request, usuario)
+        except ERRORES_CORREO as problema:
+            logger.exception("No se pudo enviar el correo de activación")
+            form.add_error(None, explicar_error_correo(problema))
+            return self.form_invalid(form)
+        self.request.session["registro_correo"] = usuario.email
+        return redirect("registro_enviado")
+
+
+class RegistroEnviadoView(AvisoCorreoMixin, TemplateView):
+    """«Revisa tu correo» después de crear la cuenta (con el correo medio oculto)."""
+
+    template_name = "registro/enviado.html"
+
+    def get_context_data(self, **kwargs):
+        contexto = super().get_context_data(**kwargs)
+        correo = self.request.session.get("registro_correo")
+        contexto["correo"] = ocultar_correo(correo) if correo else ""
+        return contexto
+
+
+class ActivarCuentaView(View):
+    """
+    Enlace del correo de activación. Solo activa cuentas creadas en
+    /registro/ (correo_pendiente): una cuenta que el administrador
+    desactivó a mano no se puede reactivar con un enlace.
+    """
+
+    def get(self, request, uidb64, token):
+        Usuario = get_user_model()
+        try:
+            usuario = Usuario.objects.get(pk=force_str(urlsafe_base64_decode(uidb64)))
+        except (ValueError, TypeError, OverflowError, Usuario.DoesNotExist):
+            usuario = None
+
+        if usuario and usuario.correo_pendiente and token_activacion.check_token(usuario, token):
+            usuario.is_active = True
+            usuario.correo_pendiente = False
+            usuario.save(update_fields=["is_active", "correo_pendiente"])
+            estado = "activada"
+        elif usuario and usuario.is_active and not usuario.correo_pendiente:
+            estado = "ya_activa"
+        else:
+            estado = "invalido"
+        return render(
+            request,
+            "registro/activada.html",
+            {"estado": estado, "usuario": usuario, "version": settings.VERSION_ESTATICOS},
         )

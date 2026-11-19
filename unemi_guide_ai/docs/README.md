@@ -4,6 +4,7 @@
 |---|---|---|
 | [arquitectura.md](arquitectura.md) | Equipo de desarrollo y docente | Capas, apps, API, flujo, algoritmo de rutas, modelo de datos y seguridad |
 | [manual_usuario.md](manual_usuario.md) | Estudiantes y administrador | Cómo usar cada pantalla y cómo cargar datos en el admin |
+| [despliegue_aws.md](despliegue_aws.md) | Quien publica la app | Poner la app en AWS con dominio, https y Gunicorn + Nginx |
 | [../README.md](../README.md) | Cualquier persona | Resumen, instalación, estructura y pendientes |
 
 ## Glosario

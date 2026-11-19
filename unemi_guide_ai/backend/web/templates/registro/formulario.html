@@ -1,0 +1,62 @@
+{% load static %}<!DOCTYPE html>
+{% comment %}
+    Crear cuenta. Vista: web.views.RegistroView. La cuenta queda inactiva
+    hasta abrir el enlace que llega al correo (web/activacion.py).
+{% endcomment %}
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0D47A1">
+    <title>Crear cuenta | UNEMI Guide AI</title>
+    <link rel="icon" type="image/png" href="{% static 'web/img/logo.png' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+    <link rel="stylesheet" href="{% static 'web/css/login.css' %}?v={{ version }}">
+</head>
+<body class="acceso">
+    <main class="acceso__contenedor">
+        <section class="acceso__tarjeta acceso__tarjeta--ancha" aria-labelledby="titulo-acceso">
+            <div class="acceso__marca">
+                <img class="acceso__logo" src="{% static 'web/img/logo.png' %}" alt="" width="56" height="56">
+                <span class="acceso__nombre">UNEMI Guide <span class="acceso__acento">AI</span></span>
+            </div>
+
+            <h1 class="acceso__titulo" id="titulo-acceso">Crear cuenta</h1>
+            <p class="acceso__texto">Completa tus datos. Te enviaremos un correo para activar la cuenta.</p>
+
+            {% if correo_sin_configurar %}
+                <p class="alerta alerta--aviso"><strong>Modo desarrollo:</strong> el correo NO se envía de verdad porque falta <code>EMAIL_HOST_PASSWORD</code> en <code>backend/.env</code>. El enlace de activación aparece en la consola de <code>runserver</code>.</p>
+            {% endif %}
+
+            <form class="formulario" method="post" novalidate>
+                {% csrf_token %}
+                {% for error in form.non_field_errors %}
+                    <p class="alerta alerta--error" role="alert">{{ error }}</p>
+                {% endfor %}
+
+                <div class="formulario__fila">
+                    {% include "registro/_campo.html" with campo=form.first_name %}
+                    {% include "registro/_campo.html" with campo=form.last_name %}
+                </div>
+                {% include "registro/_campo.html" with campo=form.email %}
+                {% include "registro/_campo.html" with campo=form.username %}
+                <div class="formulario__fila">
+                    {% include "registro/_campo.html" with campo=form.carrera %}
+                    {% include "registro/_campo.html" with campo=form.semestre %}
+                </div>
+                {% include "registro/_campo.html" with campo=form.password1 %}
+                {% include "registro/_campo.html" with campo=form.password2 %}
+
+                <button class="boton boton--primario boton--bloque" type="submit">Crear cuenta</button>
+            </form>
+
+            <p class="acceso__nota">¿Ya tienes cuenta? <a class="acceso__enlace" href="{% url 'login' %}">Inicia sesión</a></p>
+        </section>
+        <p class="acceso__pie">Universidad Estatal de Milagro · Construcción de Software</p>
+    </main>
+
+    <script src="{% static 'web/js/password.js' %}?v={{ version }}" defer></script>
+</body>
+</html>

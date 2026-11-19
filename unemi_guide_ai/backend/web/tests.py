@@ -1,5 +1,5 @@
 """
-Pruebas de la web: página única, login, logout y recuperación de cuenta.
+Pruebas de la web: página única, login, logout, crear cuenta y recuperación de cuenta.
 Ejecutar: python manage.py test web
 """
 import re
@@ -7,6 +7,7 @@ import smtplib
 from unittest.mock import patch
 
 from django.core import mail
+from django.core.cache import cache
 from django.test import TestCase, override_settings
 
 from usuarios.models import Usuario
@@ -32,9 +33,8 @@ class AutenticacionTests(TestCase):
         self.assertContains(pagina, "app.js?v=")
         self.assertIn("csrftoken", pagina.cookies)
 
-    def test_no_existe_registro_publico(self):
-        self.assertEqual(self.client.get("/registro/").status_code, 404)
-        self.assertNotContains(self.client.get("/login/"), "Crea tu cuenta")
+    def test_login_tiene_enlace_para_crear_cuenta(self):
+        self.assertContains(self.client.get("/login/"), 'href="/registro/"')
 
     def test_logout_solo_por_post(self):
         self.client.login(username="estudiante", password=CLAVE_PRUEBA)
@@ -94,3 +94,121 @@ class AutenticacionTests(TestCase):
         respuesta = self.client.get("/admin/")
         self.assertEqual(respuesta.status_code, 302)
         self.assertFalse(Usuario.objects.get(username="estudiante").is_staff)
+
+
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend", REGISTRO_DOMINIOS=[])
+class RegistroTests(TestCase):
+    """Crear cuenta desde la página + activación por correo."""
+
+    CLAVE = "Clave-Segura-2026"
+
+    def setUp(self):
+        cache.clear()  # El límite de reenvíos se guarda en la caché
+
+    def datos(self, **cambios):
+        datos = {
+            "first_name": "Ana",
+            "last_name": "Pérez",
+            "email": "Ana.Perez@Gmail.com",
+            "username": "anaperez",
+            "carrera": "Ingeniería de Software",
+            "semestre": "3",
+            "password1": self.CLAVE,
+            "password2": self.CLAVE,
+        }
+        datos.update(cambios)
+        return datos
+
+    def enlace_del_correo(self, indice=0):
+        return re.search(r"http://testserver(\S+)", mail.outbox[indice].body).group(1)
+
+    def test_formulario_de_registro(self):
+        pagina = self.client.get("/registro/")
+        self.assertContains(pagina, "Crear cuenta")
+        for campo in ("first_name", "last_name", "email", "username", "carrera", "semestre", "password1"):
+            self.assertContains(pagina, f'name="{campo}"')
+
+    def test_crear_cuenta_queda_inactiva_y_envia_enlace(self):
+        respuesta = self.client.post("/registro/", self.datos())
+        self.assertRedirects(respuesta, "/registro/enviado/")
+        usuario = Usuario.objects.get(username="anaperez")
+        self.assertFalse(usuario.is_active)
+        self.assertTrue(usuario.correo_pendiente)
+        self.assertFalse(usuario.is_staff)
+        self.assertTrue(usuario.es_estudiante)
+        self.assertEqual(usuario.email, "ana.perez@gmail.com")
+        self.assertEqual(usuario.semestre, 3)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, ["ana.perez@gmail.com"])
+        self.assertIn("/activar/", mail.outbox[0].body)
+        self.assertContains(self.client.get("/registro/enviado/"), "an*******@gmail.com")
+        # Sin activar no puede entrar
+        self.assertFalse(self.client.login(username="anaperez", password=self.CLAVE))
+
+    def test_enlace_activa_la_cuenta_una_sola_vez(self):
+        self.client.post("/registro/", self.datos())
+        enlace = self.enlace_del_correo()
+        self.assertContains(self.client.get(enlace), "¡Cuenta activada!")
+        usuario = Usuario.objects.get(username="anaperez")
+        self.assertTrue(usuario.is_active)
+        self.assertFalse(usuario.correo_pendiente)
+        self.assertContains(self.client.get(enlace), "ya está activa")
+        respuesta = self.client.post("/login/", {"username": "anaperez", "password": self.CLAVE})
+        self.assertRedirects(respuesta, "/")
+
+    def test_enlace_falso_no_activa(self):
+        self.client.post("/registro/", self.datos())
+        enlace = self.enlace_del_correo()
+        falso = enlace.rstrip("/")[:-3] + "xyz/"
+        self.assertContains(self.client.get(falso), "Enlace no válido")
+        self.assertFalse(Usuario.objects.get(username="anaperez").is_active)
+
+    def test_login_sin_activar_explica_y_reenvia_una_vez(self):
+        self.client.post("/registro/", self.datos())
+        cache.clear()  # Como si hubieran pasado 5 minutos
+        datos = {"username": "anaperez", "password": self.CLAVE}
+        primera = self.client.post("/login/", datos)
+        self.assertContains(primera, "Te enviamos un enlace nuevo")
+        self.assertEqual(len(mail.outbox), 2)
+        segunda = self.client.post("/login/", datos)
+        self.assertContains(segunda, "aún no está activada")
+        self.assertEqual(len(mail.outbox), 2)  # No reenvía en cada intento
+        # Con la contraseña equivocada no revela nada
+        mala = self.client.post("/login/", {"username": "anaperez", "password": "otra"})
+        self.assertNotContains(mala, "activada")
+
+    def test_cuenta_desactivada_por_el_admin_no_se_reactiva(self):
+        self.client.post("/registro/", self.datos())
+        enlace = self.enlace_del_correo()
+        Usuario.objects.filter(username="anaperez").update(correo_pendiente=False)
+        self.assertContains(self.client.get(enlace), "Enlace no válido")
+        self.assertFalse(Usuario.objects.get(username="anaperez").is_active)
+
+    def test_correo_y_usuario_repetidos(self):
+        crear_estudiante().__class__.objects.filter(username="estudiante").update(email="ana.perez@gmail.com")
+        respuesta = self.client.post("/registro/", self.datos(username="estudiante"))
+        self.assertContains(respuesta, "Ya existe una cuenta con este correo")
+        self.assertContains(respuesta, "Ya existe un usuario con este nombre")
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_claves_distintas_y_campos_obligatorios(self):
+        respuesta = self.client.post("/registro/", self.datos(password2="Otra-Clave-2026", carrera="", first_name=""))
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertFalse(Usuario.objects.filter(username="anaperez").exists())
+        self.assertContains(respuesta, "campo--invalido", count=3)
+
+    @override_settings(REGISTRO_DOMINIOS=["unemi.edu.ec"])
+    def test_solo_correos_del_dominio_permitido(self):
+        respuesta = self.client.post("/registro/", self.datos())
+        self.assertContains(respuesta, "Usa tu correo institucional (@unemi.edu.ec)")
+        self.client.post("/registro/", self.datos(email="aperez@unemi.edu.ec"))
+        self.assertTrue(Usuario.objects.filter(username="anaperez").exists())
+
+    def test_si_el_correo_falla_no_se_guarda_la_cuenta(self):
+        problema = smtplib.SMTPAuthenticationError(535, b"Username and Password not accepted")
+        with patch("django.core.mail.EmailMessage.send", side_effect=problema):
+            respuesta = self.client.post("/registro/", self.datos())
+        self.assertContains(respuesta, "No pudimos enviar el correo")
+        self.assertFalse(Usuario.objects.filter(username="anaperez").exists())
+        # Se puede intentar de nuevo con los mismos datos
+        self.assertRedirects(self.client.post("/registro/", self.datos()), "/registro/enviado/")

@@ -13,7 +13,9 @@ Proyecto académico · Construcción de Software.
 
 ## Reglas de negocio
 
-- **No hay registro público.** El administrador crea las cuentas de los estudiantes en `/admin/`.
+- **Cuentas:** el estudiante crea la suya en **Crear cuenta** (`/registro/`) y la activa con el
+  enlace que le llega al correo. El administrador también puede crearlas en `/admin/`.
+  Con `REGISTRO_DOMINIOS=unemi.edu.ec` en `.env` solo se aceptan correos institucionales.
 - El **estudiante** solo consulta: no puede crear ni modificar nada.
 - El **administrador** gestiona zonas, destinos, rutas y usuarios desde `/admin/`.
 
@@ -80,12 +82,14 @@ unemi_guide_ai/
 │   ├── Assets/UNEMI/Scripts/ CampusData · RutaCampus · PersonaCaminante · GrafoCalles
 │   │                         CampusCameraController · CampusLocation · ApiClient ...
 │   └── herramientas/         campus_data.py + gen_cs.py (regeneran CampusData.cs)
+├── deploy/                   Servidor AWS: actualizar.sh, instalar_servidor.sh, Gunicorn y Nginx
 ├── database/
 │   ├── init.sql              Esquema de las tablas (referencia)
 │   └── seed_data.sql         Datos de prueba en SQL (referencia; usa loaddata)
 ├── docs/
 │   ├── README.md             Índice y glosario
 │   ├── arquitectura.md       Arquitectura, API, algoritmo y modelo de datos
+│   ├── despliegue_aws.md     Publicar la app en AWS paso a paso
 │   └── manual_usuario.md     Manual para el estudiante y el administrador
 └── README.md                 Este archivo
 ```
@@ -144,11 +148,12 @@ python manage.py runserver
 
 ---
 
-## Correo real para recuperar contraseña (mmedinal2@unemi.edu.ec)
+## Correo real (activar cuenta, recuperar contraseña y usuario)
 
-La recuperación de contraseña (`/recuperar/`) y de usuario (`/recuperar-usuario/`) ya
-funciona. Los correos salen desde **mmedinal2@unemi.edu.ec**, que ya está configurado en
-`backend/.env`. Solo falta la **contraseña de aplicación**.
+La app envía tres correos: el enlace para **activar una cuenta nueva** (`/registro/`), el de
+**nueva contraseña** (`/recuperar/`) y el **nombre de usuario** (`/recuperar-usuario/`). Salen
+desde la cuenta de `EMAIL_HOST_USER` en `backend/.env` (una cuenta de Gmail con verificación
+en 2 pasos sirve). Solo falta su **contraseña de aplicación**.
 
 ### Paso 1 · ¿La cuenta es de Google o de Microsoft?
 
@@ -160,7 +165,7 @@ Entra al correo institucional en el navegador:
 
 ### Paso 2 · Crear la contraseña de aplicación (Google)
 
-1. Inicia sesión con **mmedinal2@unemi.edu.ec** en **https://myaccount.google.com**.
+1. Inicia sesión con la cuenta de `EMAIL_HOST_USER` en **https://myaccount.google.com**.
 2. Ve a **Seguridad** y activa **Verificación en 2 pasos**. Es obligatoria.
 3. Entra a **https://myaccount.google.com/apppasswords**.
 4. Escribe un nombre, por ejemplo `UNEMI Guide AI`, y pulsa **Crear**.
@@ -258,15 +263,14 @@ python manage.py runserver 0.0.0.0:8000
   «Subir desde galería» y el recorrido funciona en modo **Referencial**. El modo
   **A tiempo real** necesita `https`.
 
-### Servidor en internet (AWS · pendiente)
+### Servidor en internet (AWS)
 
-La app se publicará en AWS con un dominio fijo y **HTTPS**, encendida todo el tiempo. Con
-HTTPS funcionan la cámara en vivo y el GPS del modo **A tiempo real**. Al desplegar:
+La app está publicada en **https://44-208-82-176.sslip.io** (AWS Lightsail, Ubuntu, 1 GB),
+encendida todo el tiempo con **Gunicorn** (servicio `unemi`) + **Nginx**. Para actualizarla:
+`bash ~/unemi-qps-2.0/unemi_guide_ai/deploy/actualizar.sh` en el servidor. Con HTTPS funcionan la cámara en vivo y el GPS del modo
+**A tiempo real**. Los archivos del servidor están en `deploy/`.
 
-- `DJANGO_DEBUG=False`
-- `DJANGO_ALLOWED_HOSTS=tu-dominio.com`
-- `DJANGO_CSRF_TRUSTED_ORIGINS=https://tu-dominio.com`
-- `python manage.py collectstatic` y un servidor de producción (por ejemplo Gunicorn + Nginx).
+Guía completa paso a paso: [docs/despliegue_aws.md](docs/despliegue_aws.md).
 
 ---
 
@@ -276,7 +280,7 @@ HTTPS funcionan la cámara en vivo y el GPS del modo **A tiempo real**. Al despl
 python manage.py test
 ```
 
-Son 54 pruebas. Cubren:
+Son 64 pruebas. Cubren:
 - **API:** acceso solo con sesión, solo lectura, filtros, 404, semáforo rojo con error 400 y
   tiempo de reconocimiento ≤ 5 s.
 - **Microservicio de IA:** zona según la detección, sin detecciones, y caída automática a la
@@ -284,8 +288,9 @@ Son 54 pruebas. Cubren:
 - **Rutas:** algoritmo de Dijkstra, pasillos del admin, fixture `datos_demo`, ruta inexistente,
   historial privado y que no se puede editar.
 - **Visión:** elección automática del modo (simulado o local) y clasificador de zonas.
-- **Login y recuperación:** registro público inexistente, logout por POST y recuperación de
-  contraseña y de usuario.
+- **Login y cuentas:** crear cuenta con activación por correo (enlace de un solo uso, reenvío al
+  iniciar sesión, cuentas desactivadas por el admin que no se reactivan, dominio permitido),
+  logout por POST y recuperación de contraseña y de usuario.
 
 ---
 
@@ -332,8 +337,8 @@ carpetas de `ml/dataset/zonas/` deben ser **iguales** a los nombres de las zonas
 - **Probar `ia_service` con el `best.pt` real.** El servicio y la integración se probaron con
   un YOLO falso, porque PyTorch no está instalado aquí.
 - **Unity:** calibrar el GPS del campus (`CampusGeoReference`) y publicar el build WebGL en la web.
-- **Servidor en AWS** con dominio fijo, HTTPS y PostgreSQL (ver «Servidor en internet»).
-  También hay que decidir dónde corre YOLO.
+- **AWS:** pasar de SQLite a PostgreSQL cuando haya muchos usuarios y decidir dónde corre YOLO
+  (ver [docs/despliegue_aws.md](docs/despliegue_aws.md)).
 - **AWS S3** con django-storages: el bloque de configuración ya está comentado en `settings.py`.
 - **Seguridad antes de entregar:**
   - cambiar la contraseña de aplicación de Gmail si estuvo expuesta;
@@ -346,3 +351,4 @@ carpetas de `ml/dataset/zonas/` deben ser **iguales** a los nombres de las zonas
 
 - [docs/arquitectura.md](docs/arquitectura.md): cómo está construido.
 - [docs/manual_usuario.md](docs/manual_usuario.md): cómo se usa.
+- [docs/despliegue_aws.md](docs/despliegue_aws.md): cómo publicarla en AWS.

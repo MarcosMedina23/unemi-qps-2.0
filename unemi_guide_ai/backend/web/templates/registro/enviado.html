@@ -1,0 +1,32 @@
+{% load static %}<!DOCTYPE html>
+{% comment %} Después de crear la cuenta: aviso de correo enviado. Vista: RegistroEnviadoView. {% endcomment %}
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0D47A1">
+    <title>Activa tu cuenta | UNEMI Guide AI</title>
+    <link rel="icon" type="image/png" href="{% static 'web/img/logo.png' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+    <link rel="stylesheet" href="{% static 'web/css/login.css' %}?v={{ version }}">
+</head>
+<body class="acceso">
+    <main class="acceso__contenedor">
+        <section class="acceso__tarjeta acceso__tarjeta--mensaje" aria-labelledby="titulo-acceso">
+            <span class="acceso__icono" aria-hidden="true">📬</span>
+            <h1 class="acceso__titulo" id="titulo-acceso">Revisa tu correo</h1>
+            <p class="acceso__texto">
+                Tu cuenta está creada. Te enviamos un enlace para activarla{% if correo %} a <strong>{{ correo }}</strong>{% endif %}.
+                El enlace vence en 1 hora. Revisa también la carpeta de spam.
+            </p>
+            {% if correo_sin_configurar %}
+                <p class="alerta alerta--aviso"><strong>Modo desarrollo:</strong> el enlace está en la consola de <code>runserver</code>.</p>
+            {% endif %}
+            <a class="boton boton--primario boton--bloque" href="{% url 'login' %}">Ir a iniciar sesión</a>
+            <p class="acceso__nota">¿Venció el enlace? Inicia sesión con tu usuario y contraseña y te enviaremos uno nuevo.</p>
+        </section>
+    </main>
+</body>
+</html>

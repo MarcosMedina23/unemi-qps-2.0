@@ -15,7 +15,7 @@ def revisar_correo(app_configs, **kwargs):
         return []
     return [
         checks.Warning(
-            "Los correos de recuperar contraseña/usuario NO se envían: solo se muestran en esta consola.",
+            "Los correos de activar cuenta y recuperar contraseña/usuario NO se envían: solo se muestran en esta consola.",
             hint="Pon la contraseña de aplicación (16 letras) en EMAIL_HOST_PASSWORD de backend/.env "
             "y prueba con: python manage.py sendtestemail tu_correo@unemi.edu.ec",
             id="web.W001",

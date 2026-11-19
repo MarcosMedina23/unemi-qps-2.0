@@ -296,4 +296,4 @@ El nombre de cada clase de YOLO debe coincidir con el **nombre de la Zona** en e
 | `rutas/tests.py` | Dijkstra (desvío más corto, sin conexión), giros, pasillos y conexiones del admin, fixture `datos_demo`, ruta inexistente, historial privado |
 | `vision/tests.py` | Semáforo en los límites 0.65 y 0.85, Haversine, simulación, elección del modo local, clasificador de zonas |
 | `usuarios/tests.py` | Ranking de carreras (solo estudiantes), datos del usuario sin contraseña |
-| `web/tests.py` | Login, sin registro público, logout por POST, recuperación de contraseña y de usuario, admin bloqueado |
+| `web/tests.py` | Login, crear cuenta con activación por correo, logout por POST, recuperación de contraseña y de usuario, admin bloqueado |

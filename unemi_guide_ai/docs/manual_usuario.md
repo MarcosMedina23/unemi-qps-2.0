@@ -11,14 +11,25 @@ Este manual tiene dos partes:
 
 # Parte A · Estudiante
 
-## 1. Ingresar
+## 1. Crear tu cuenta e ingresar
 
-1. Abre el enlace de la app que te dio la universidad.
-2. Escribe el **usuario** y la **contraseña** que te entregó la universidad.
+### Crear tu cuenta
+
+1. Abre el enlace de la app y pulsa **Crear cuenta**.
+2. Completa nombres, apellidos, correo, usuario, carrera, semestre y contraseña.
+3. Pulsa **Crear cuenta**. Te llega un correo **«Activa tu cuenta»**: abre el enlace
+   (vence en 1 hora; revisa también spam).
+4. Verás **«¡Cuenta activada!»**. Ya puedes ingresar.
+
+Si el enlace venció, inicia sesión con tu usuario y contraseña: la app te avisa que falta
+activar la cuenta y te envía un enlace nuevo.
+
+### Ingresar
+
+1. Abre el enlace de la app.
+2. Escribe tu **usuario** y tu **contraseña**.
 3. Pulsa el ícono del ojo 👁 si quieres ver la contraseña mientras la escribes.
 4. Pulsa **Ingresar**.
-
-No hay opción «Crear cuenta»: las cuentas las crea la administración de tu facultad.
 
 **¿Olvidaste algo?**
 
@@ -149,10 +160,15 @@ Entra a **`/admin/`** con tu superusuario.
 
 ## Dar acceso a un estudiante
 
-No hay registro público. Para que un estudiante entre:
+Lo normal es que el estudiante cree su cuenta con **Crear cuenta** y la active por correo.
+Si prefieres crearla tú:
 1. En **Usuarios → Añadir usuario**, crea su cuenta **sin** «Staff status» y con su correo
    institucional (lo necesita para recuperar la contraseña).
 2. Envíale el enlace de la app, su usuario y su contraseña.
+
+En **Usuarios** puedes filtrar por **«falta activar por correo»** para ver las cuentas que aún
+no abrieron el enlace. Si desactivas a mano una cuenta (quitas «Activo»), el estudiante no la
+puede reactivar con un enlace.
 
 ## Datos de prueba
 

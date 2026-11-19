@@ -156,8 +156,16 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-# El enlace para crear una nueva contraseña vence en 1 hora (en segundos).
+# El enlace para crear una nueva contraseña (y el de activar la cuenta)
+# vence en 1 hora (en segundos).
 PASSWORD_RESET_TIMEOUT = 60 * 60
+
+# Crear cuenta desde la página (/registro/). Si se llena, SOLO se aceptan
+# correos de esos dominios, separados por coma. Ej: REGISTRO_DOMINIOS=unemi.edu.ec
+# Vacío = cualquier correo (útil para pruebas con Gmail).
+REGISTRO_DOMINIOS = [
+    d.strip().lower().lstrip("@") for d in os.getenv("REGISTRO_DOMINIOS", "").split(",") if d.strip()
+]
 
 # ------------------------------------------------------------------
 # Django REST Framework: solo usuarios con sesión iniciada

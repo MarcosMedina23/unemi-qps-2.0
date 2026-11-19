@@ -1,0 +1,12 @@
+{% autoescape off %}Hola {{ usuario.first_name|default:usuario.username }}:
+
+Creaste una cuenta en UNEMI Guide AI. Para activarla abre este enlace (vence en 1 hora):
+{{ enlace }}
+
+Tu nombre de usuario es: {{ usuario.username }}
+
+Si el enlace venció, inicia sesión con tu usuario y contraseña y te enviaremos uno nuevo.
+Si no creaste esta cuenta, ignora este correo: sin activar no se puede usar.
+
+UNEMI Guide AI
+{% endautoescape %}

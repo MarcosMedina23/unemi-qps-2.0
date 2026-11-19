@@ -1,0 +1,6 @@
+<div class="campo{% if campo.errors %} campo--invalido{% endif %}">
+    <label class="campo__etiqueta" for="{{ campo.id_for_label }}">{{ campo.label }}</label>
+    {{ campo }}
+    {% if campo.help_text and not campo.errors %}<p class="campo__ayuda">{{ campo.help_text }}</p>{% endif %}
+    {% for error in campo.errors %}<p class="campo__error">{{ error }}</p>{% endfor %}
+</div>
