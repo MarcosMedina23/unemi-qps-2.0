@@ -20,3 +20,6 @@ ml/dataset/labels/
 ml/dataset/zonas/
 ml/dataset/*.csv
 *.pt
+
+# Archivos que junta collectstatic (se generan en el servidor)
+staticfiles/
