@@ -42,13 +42,38 @@ SECRET_KEY = os.getenv(
 DEBUG = leer_booleano("DJANGO_DEBUG", por_defecto=True)
 
 # ALLOWED_HOSTS abierto y CORS abierto SOLO en desarrollo (DEBUG=True).
-ALLOWED_HOSTS = ["*"] if DEBUG else os.getenv("DJANGO_ALLOWED_HOSTS", "").split(",")
+ALLOWED_HOSTS = (
+    ["*"]
+    if DEBUG
+    else [h.strip() for h in os.getenv("DJANGO_ALLOWED_HOSTS", "").split(",") if h.strip()]
+)
 CORS_ALLOW_ALL_ORIGINS = DEBUG
 
 # Permite probar con enlaces públicos temporales:
 #   - Túnel de Cloudflare (cloudflared tunnel --url ... / compartir_enlace.bat)
 #   - Reenvío de puertos de VS Code (pestaña "Puertos", dominio devtunnels.ms)
 CSRF_TRUSTED_ORIGINS = ["https://*.trycloudflare.com", "https://*.devtunnels.ms"]
+# En el servidor (AWS) se agrega el dominio real desde .env, por ejemplo:
+#   DJANGO_CSRF_TRUSTED_ORIGINS=https://unemi-guide.duckdns.org
+CSRF_TRUSTED_ORIGINS += [
+    o.strip() for o in os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()
+]
+
+# ------------------------------------------------------------------
+# Producción con https (solo cuando DEBUG=False)
+# ------------------------------------------------------------------
+# Nginx recibe el https y le pasa la visita a Gunicorn por http. Esta
+# cabecera le dice a Django que la visita original sí era https.
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    # Ponlo en False solo si todavía no tienes certificado https.
+    _HTTPS = leer_booleano("DJANGO_HTTPS", por_defecto=True)
+    SECURE_SSL_REDIRECT = _HTTPS
+    SESSION_COOKIE_SECURE = _HTTPS
+    CSRF_COOKIE_SECURE = _HTTPS
+    SECURE_HSTS_SECONDS = 3600 if _HTTPS else 0  # 1 hora; súbelo cuando todo funcione
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_REFERRER_POLICY = "same-origin"
 
 # ------------------------------------------------------------------
 # Aplicaciones
@@ -185,6 +210,9 @@ USE_TZ = True
 # Archivos estáticos y multimedia
 # ------------------------------------------------------------------
 STATIC_URL = "static/"
+# Carpeta donde "python manage.py collectstatic" junta todos los CSS, JS,
+# imágenes y archivos 3D para que Nginx los entregue en el servidor.
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Fotos subidas (imágenes de referencia de zonas y fotos del historial).
 MEDIA_URL = "/media/"
