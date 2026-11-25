@@ -35,7 +35,10 @@ ZONAS_DEMO = {"Bloque A": "T", "Biblioteca Central": "CRAI"}
 # Lugares del campus que cambiaron de nombre (nombre anterior -> nombre nuevo).
 # Se renombran en la base de datos en vez de crear uno nuevo, así no quedan
 # duplicados y se conservan sus rutas e historial.
-RENOMBRADOS = {"Edificio anexo (Bloque H)": "Bloque F"}
+RENOMBRADOS = {
+    "Edificio anexo (Bloque H)": "Bloque F",
+    "Edificio anexo (Bloque M)": "Bloque L",
+}
 
 
 def a_lat_lng(x, z_norte):
