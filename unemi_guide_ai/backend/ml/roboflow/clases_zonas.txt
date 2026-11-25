@@ -6,9 +6,9 @@
 #   Area verde -Bloques R-U-                 = zona "Área verde (Bloques R-U)"
 # La app las une sola (zonas/views.py -> clave_nombre: ignora tildes y signos).
 #
-# No se incluyen baños, edificios anexos ni estacionamientos porque se
-# parecen entre sí y confunden al modelo. Las áreas verdes sí: usa fotos
-# donde se vea algo que las distinga (bancas, letreros o un bloque al fondo).
+# No se incluyen baños ni edificios anexos porque se parecen entre sí y
+# confunden al modelo. En áreas verdes y estacionamientos usa fotos donde se
+# vea algo que los distinga (bancas, letreros o un bloque al fondo).
 Bloque B
 Bloque C
 Bloque E
@@ -40,3 +40,5 @@ Entrada peatonal
 Entrada de vehiculos
 Area verde -Bloques R-U-
 Area verde sur
+Estacionamiento 1
+Estacionamiento 2
