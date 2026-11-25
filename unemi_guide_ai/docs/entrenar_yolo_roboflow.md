@@ -27,17 +27,49 @@ la app las une sola con la zona correcta (ignora tildes, signos y mayúsculas):
 | `Bloque de Investigacion de Biotecnologia` | Bloque de Investigación de Biotecnología |
 | `Entrada de vehiculos` | Entrada de vehículos |
 
-| Bloques | Edificios | Deportes y accesos |
+Son **30 clases**:
+
+| Bloques | Edificios | Deportes, accesos y exteriores |
 |---|---|---|
 | Bloque B · Bloque C · Bloque E · Bloque F | CRAI | Estadio Universitario UNEMI |
 | Bloque H · Bloque I · Bloque J | Posgrado | Piscina UNEMI |
-| Bloque K · Bloque L · Bloque M · Bloque N | SIM | Canchas |
-| Bloque O · Bloque P · Bloque R | CDIP | Monumento de las Banderas |
-| Bloque S · Bloque T -FACI- · Bloque U | Bloque de Investigacion de Biotecnologia | Entrada peatonal |
-| Bloque V · Bloque W · Bloque X | | Entrada de vehiculos |
+| Bloque K · Bloque L · Bloque M · Bloque N | SIM | Entrada de vehiculos |
+| Bloque O · Bloque P · Bloque R | CDIP | Area verde -Bloques R-U- · Area verde sur |
+| Bloque S · Bloque T -FACI- · Bloque U | Bloque de Investigacion de Biotecnologia | Estacionamiento 1 · Estacionamiento 2 |
+| Bloques V-W-X | | |
 
-No se usan los baños, los edificios anexos, los estacionamientos ni las áreas verdes:
-se parecen entre sí y confunden al modelo.
+No se usan los baños ni los edificios anexos: se parecen entre sí y confunden al modelo.
+En áreas verdes y estacionamientos usa fotos donde se vea algo que los distinga
+(bancas, letreros o un bloque al fondo).
+
+### Grupos: varios lugares, una sola clase
+
+Algunos lugares están tan juntos que en una foto casi siempre salen a la vez. Si fueran
+clases separadas, el modelo los confundiría. Por eso se etiquetan con **una sola clase**
+y la app muestra qué lugares incluye esa zona (archivo `backend/zonas/grupos_ia.py`).
+El mapa del GPS y las rutas **no cambian**: cada lugar sigue siendo un destino propio.
+
+| Clase en Roboflow | La app ubica al estudiante en | La zona incluye |
+|---|---|---|
+| `Bloques V-W-X` | Bloque W | Bloque V, Bloque W, Bloque X |
+| `Bloque H` | Bloque H | Bloque H, bar del Bloque H, Entrada peatonal |
+| `Estadio Universitario UNEMI` | Estadio Universitario UNEMI | Estadio, polideportivo, bar del polideportivo, Canchas |
+| `Piscina UNEMI` | Piscina UNEMI | Piscina, gimnasio, Monumento de las Banderas |
+
+**Regla de subida** (en qué clase va cada foto):
+
+- Fotos del **Bloque V, W o X** → `Bloques V-W-X`.
+- Fotos del **bar del Bloque H** o de la **Entrada peatonal** → `Bloque H`.
+- Fotos de las **canchas**, el **polideportivo** o **su bar** → `Estadio Universitario UNEMI`.
+- Fotos del **gimnasio** o del **Monumento de las Banderas** → `Piscina UNEMI`.
+
+Ya **no existen** las clases `Bloque V`, `Bloque W`, `Bloque X`, `Canchas`,
+`Entrada peatonal` ni `Monumento de las Banderas`: si Roboflow todavía las tiene,
+reasigna sus fotos según la regla de arriba y bórralas antes de generar la versión.
+
+**Cerca (solo información):** cuando el modelo detecta `Bloque N`, la app avisa que
+cerca hay un **baño** y un **bar**. No son clases ni lugares del mapa (no tenemos su
+ubicación exacta).
 
 ### ¿Cuántas fotos?
 

@@ -77,6 +77,11 @@
     font-weight: 600;
 }
 
+/* "Esta zona incluye: ..." y "Cerca: ..." (grupos de la IA) */
+.zona-detectada__grupo {
+    font-size: 0.95rem;
+}
+
 /* Barra de confianza (<meter> nativo) */
 .confianza__fila {
     display: flex;

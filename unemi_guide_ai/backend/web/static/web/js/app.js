@@ -190,6 +190,10 @@
         semaforo.textContent = resultado.semaforo === "verde" ? "Confianza alta" : "Confianza media";
 
         document.getElementById("zona-mensaje").textContent = resultado.mensaje;
+        // Clase de la IA que agrupa varios lugares (zonas/grupos_ia.py).
+        const grupo = resultado.grupo || {};
+        mostrarLista("zona-incluye", "Esta zona incluye: ", grupo.incluye);
+        mostrarLista("zona-cerca", "Cerca: ", grupo.cerca);
         document.getElementById("zona-confianza").value = resultado.confianza;
         document.getElementById("zona-confianza-texto").textContent = `${Math.round(resultado.confianza * 100)} %`;
         document.getElementById("zona-nota-simulada").hidden = !resultado.simulado;
@@ -200,6 +204,14 @@
                 : `${(resultado.tiempo_ms / 1000).toFixed(2)} s`;
         document.getElementById("zona-tiempo").textContent =
             `Analizada en ${tiempo} · ${resultado.detecciones.length} detecciones`;
+    }
+
+    /** Muestra "Etiqueta: a, b, c" en el elemento, o lo oculta si la lista está vacía. */
+    function mostrarLista(id, etiqueta, lista) {
+        const elemento = document.getElementById(id);
+        const hayDatos = Array.isArray(lista) && lista.length > 0;
+        elemento.hidden = !hayDatos;
+        elemento.textContent = hayDatos ? etiqueta + lista.join(", ") : "";
     }
 
     /* ==================================================================

@@ -22,6 +22,7 @@ from rest_framework.response import Response
 from vision.services import reconocer_zona
 from vision.utils import UMBRAL_AMARILLO, clasificar_confianza
 
+from .grupos_ia import grupo_de_clase, info_grupo
 from .models import Destino, Zona
 from .serializers import DestinoSerializer, FotoReconocimientoSerializer, ZonaSerializer
 
@@ -48,9 +49,15 @@ def clave_nombre(nombre):
 
 def buscar_zona(nombre):
     """
-    Zona por nombre exacto; si no existe, por su equivalente en el campus real
+    Si el nombre es una clase de GRUPOS_IA ("Bloques V-W-X"), devuelve su zona
+    principal ("Bloque W"). Si no: zona por nombre exacto; si no existe, por su equivalente en el campus real
     y, al final, ignorando tildes y signos (nombres de clases de Roboflow).
     """
+    # Clase que agrupa varias zonas cercanas (zonas/grupos_ia.py): su zona principal.
+    _, grupo = grupo_de_clase(nombre)
+    if grupo is not None:
+        nombre = grupo["zona"]
+
     zona = Zona.objects.filter(nombre__iexact=nombre).first()
     if zona is None and nombre.lower() in ALIAS_ZONAS:
         zona = Zona.objects.filter(nombre__iexact=ALIAS_ZONAS[nombre.lower()]).first()
@@ -102,7 +109,8 @@ class ZonaViewSet(SinDatosMixin, viewsets.ReadOnlyModelViewSet):
 
             {"reconocida": true, "semaforo": "verde", "mensaje": "...",
              "confianza": 0.91, "zona": {...}, "detecciones": [...],
-             "modo": "simulado", "simulado": true, "tiempo_ms": 42}
+             "modo": "simulado", "simulado": true, "tiempo_ms": 42,
+             "grupo": {"clase": "Bloque H", "incluye": [...], "cerca": [...]} | null}
         """
         entrada = FotoReconocimientoSerializer(data=request.data)
         entrada.is_valid(raise_exception=True)
@@ -119,6 +127,7 @@ class ZonaViewSet(SinDatosMixin, viewsets.ReadOnlyModelViewSet):
             "modo": resultado["modo"],
             "simulado": resultado["simulado"],
             "tiempo_ms": tiempo_ms,
+            "grupo": None,
         }
         if resultado.get("aviso"):
             # Ej.: el microservicio de IA no respondió y se usó la simulación.
@@ -138,6 +147,8 @@ class ZonaViewSet(SinDatosMixin, viewsets.ReadOnlyModelViewSet):
 
         semaforo = clasificar_confianza(resultado["confianza"], zona.nombre_completo)
         respuesta["zona"] = ZonaSerializer(zona, context={"request": request}).data
+        # Lugares que abarca la clase detectada y lo que hay cerca (o None).
+        respuesta["grupo"] = info_grupo(resultado["zona"])
         return Response({**respuesta, **semaforo})
 
 

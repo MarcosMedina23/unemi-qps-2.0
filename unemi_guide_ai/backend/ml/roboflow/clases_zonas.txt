@@ -6,6 +6,13 @@
 #   Area verde -Bloques R-U-                 = zona "Área verde (Bloques R-U)"
 # La app las une sola (zonas/views.py -> clave_nombre: ignora tildes y signos).
 #
+# Grupos (zonas/grupos_ia.py): lugares cercanos que se etiquetan con UNA clase.
+#   Bloques V-W-X               = Bloque V, Bloque W y Bloque X (zona: Bloque W)
+#   Bloque H                    = Bloque H, su bar y la Entrada peatonal
+#   Estadio Universitario UNEMI = estadio, polideportivo, su bar y las Canchas
+#   Piscina UNEMI               = piscina, gimnasio y Monumento de las Banderas
+# Total: 30 clases.
+#
 # No se incluyen baños ni edificios anexos porque se parecen entre sí y
 # confunden al modelo. En áreas verdes y estacionamientos usa fotos donde se
 # vea algo que los distinga (bancas, letreros o un bloque al fondo).
@@ -26,9 +33,7 @@ Bloque R
 Bloque S
 Bloque T -FACI-
 Bloque U
-Bloque V
-Bloque W
-Bloque X
+Bloques V-W-X
 CRAI
 Posgrado
 SIM
@@ -36,9 +41,6 @@ CDIP
 Bloque de Investigacion de Biotecnologia
 Estadio Universitario UNEMI
 Piscina UNEMI
-Canchas
-Monumento de las Banderas
-Entrada peatonal
 Entrada de vehiculos
 Area verde -Bloques R-U-
 Area verde sur

@@ -156,3 +156,51 @@ class ReconocimientoTests(TestCase):
         self.assertEqual(datos["semaforo"], "rojo")
         self.assertFalse(datos["reconocida"])
         self.assertIsNone(datos["zona"])
+
+
+class GruposIATests(TestCase):
+    """Clases de la IA que agrupan zonas cercanas (zonas/grupos_ia.py)."""
+
+    def setUp(self):
+        crear_campus_de_prueba()
+        for nombre in ("Bloque V", "Bloque W", "Bloque X", "Bloque H", "Bloque N",
+                       "Entrada peatonal", "Canchas"):
+            Zona.objects.create(nombre=nombre, latitud=-2.149, longitud=-79.603)
+        self.client.login(username=crear_estudiante().username, password=CLAVE_PRUEBA)
+
+    def reconocer(self, clase):
+        with mock.patch("vision.services.elegir_zona_simulada", return_value=clase):
+            return self.client.post("/api/zonas/reconocer/", {"foto": foto_jpeg()}).json()
+
+    def test_grupo_devuelve_su_zona_principal(self):
+        from .views import buscar_zona
+
+        self.assertEqual(buscar_zona("Bloques V-W-X").nombre, "Bloque W")
+        self.assertEqual(buscar_zona("bloques v w x").nombre, "Bloque W")
+
+    def test_clases_viejas_siguen_con_su_propia_zona(self):
+        from .views import buscar_zona
+
+        for nombre in ("Bloque V", "Bloque X", "Canchas", "Entrada peatonal"):
+            self.assertEqual(buscar_zona(nombre).nombre, nombre)
+
+    def test_reconocer_bloque_h_incluye_entrada_peatonal(self):
+        datos = self.reconocer("Bloque H")
+        self.assertEqual(datos["zona"]["nombre"], "Bloque H")
+        self.assertEqual(datos["grupo"]["clase"], "Bloque H")
+        self.assertIn("Entrada peatonal", datos["grupo"]["incluye"])
+        # No se pierde ningún campo anterior de la respuesta.
+        for campo in ("zona", "confianza", "semaforo", "mensaje", "detecciones",
+                      "modo", "simulado", "tiempo_ms"):
+            self.assertIn(campo, datos)
+
+    def test_reconocer_bloque_n_muestra_lo_que_hay_cerca(self):
+        datos = self.reconocer("Bloque N")
+        self.assertEqual(datos["zona"]["nombre"], "Bloque N")
+        self.assertEqual(datos["grupo"]["cerca"], ["Baño", "Bar"])
+        self.assertEqual(datos["grupo"]["incluye"], [])
+
+    def test_zona_sin_grupo_devuelve_grupo_null(self):
+        datos = self.reconocer("Bloque B")
+        self.assertEqual(datos["zona"]["nombre"], "Bloque B")
+        self.assertIsNone(datos["grupo"])
