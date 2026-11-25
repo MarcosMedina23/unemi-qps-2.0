@@ -1,0 +1,37 @@
+# Nombres EXACTOS de las clases para Roboflow / YOLO (uno por línea).
+# Deben ser idénticos al nombre de la zona en la app (mayúsculas, tildes,
+# espacios y paréntesis). Si una clase se escribe distinto, la app no
+# sabrá a qué zona corresponde.
+#
+# Son los lugares que se reconocen por su FACHADA. No se incluyen baños,
+# edificios anexos, estacionamientos ni áreas verdes porque se parecen
+# entre sí y confunden al modelo.
+Bloque B
+Bloque C
+Bloque E
+Bloque H
+Bloque I
+Bloque J
+Bloque K
+Bloque M
+Bloque N
+Bloque O
+Bloque P
+Bloque R
+Bloque S
+Bloque T (FACI)
+Bloque U
+Bloque V
+Bloque W
+Bloque X
+CRAI
+Posgrado
+SIM
+CDIP
+Bloque de Investigación de Biotecnología
+Estadio Universitario UNEMI
+Piscina UNEMI
+Canchas
+Monumento de las Banderas
+Entrada peatonal
+Entrada de vehículos
