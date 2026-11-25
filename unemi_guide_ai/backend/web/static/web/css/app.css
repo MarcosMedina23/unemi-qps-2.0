@@ -495,6 +495,42 @@ select {
     margin-bottom: 20px;
 }
 
+/* Pantalla "no reconocida": consejos de la foto y zonas para elegir */
+.consejos {
+    margin: 0 0 20px;
+    padding-left: 20px;
+    text-align: left;
+}
+
+.consejos li + li {
+    margin-top: 6px;
+}
+
+.opciones-zona {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.opcion-zona {
+    display: grid;
+    gap: 2px;
+    text-align: left;
+}
+
+.opcion-zona__nombre {
+    font-weight: 600;
+}
+
+.opcion-zona__detalle {
+    font-size: 0.85rem;
+    opacity: 0.8;
+}
+
+.nota--consejo {
+    font-style: italic;
+}
+
 .vacio {
     display: grid;
     justify-items: center;

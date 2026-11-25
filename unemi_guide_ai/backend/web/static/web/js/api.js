@@ -77,10 +77,18 @@ const Api = (() => {
         /** GET /api/destinos/ */
         destinos: () => solicitar("/destinos/"),
 
-        /** POST /api/zonas/reconocer/ (multipart, campo "foto") */
-        reconocerZona(foto) {
+        /**
+         * POST /api/zonas/reconocer/ (multipart, campo "foto").
+         * @param {{latitud:number,longitud:number,precision:number}|null} ubicacion - GPS opcional
+         */
+        reconocerZona(foto, ubicacion = null) {
             const formulario = new FormData();
             formulario.append("foto", foto, foto.name || "foto.jpg");
+            if (ubicacion) {
+                formulario.append("latitud", ubicacion.latitud.toFixed(6));
+                formulario.append("longitud", ubicacion.longitud.toFixed(6));
+                formulario.append("precision", Math.round(ubicacion.precision));
+            }
             return solicitar("/zonas/reconocer/", { metodo: "POST", formulario });
         },
 

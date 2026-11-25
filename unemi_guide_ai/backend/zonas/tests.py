@@ -6,7 +6,7 @@ from unittest import mock
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
-from PIL import Image
+from PIL import Image, ImageDraw, ImageEnhance, ImageFilter
 
 from usuarios.models import Usuario
 
@@ -45,9 +45,26 @@ def crear_estudiante(username="estudiante", carrera="Ingeniería de Software"):
     return Usuario.objects.create_user(username, password=CLAVE_PRUEBA, carrera=carrera)
 
 
-def foto_jpeg():
+def foto_jpeg(tipo="nitida"):
+    """
+    Foto de prueba con detalles (ventanas de un "edificio"), para que pase el
+    control de calidad. tipo: "nitida", "borrosa", "oscura" o "tapada".
+    """
+    if tipo == "tapada":
+        imagen = Image.new("RGB", (640, 480), "navy")
+    else:
+        imagen = Image.new("RGB", (640, 480), (150, 170, 200))
+        dibujo = ImageDraw.Draw(imagen)
+        dibujo.rectangle((80, 120, 560, 470), fill=(200, 190, 170))
+        for x in range(100, 540, 40):
+            for y in range(140, 450, 50):
+                dibujo.rectangle((x, y, x + 25, y + 30), fill=(40, 60, 90))
+        if tipo == "borrosa":
+            imagen = imagen.filter(ImageFilter.GaussianBlur(6))
+        elif tipo == "oscura":
+            imagen = ImageEnhance.Brightness(imagen).enhance(0.15)
     buffer = io.BytesIO()
-    Image.new("RGB", (640, 480), "navy").save(buffer, "JPEG")
+    imagen.save(buffer, "JPEG")
     return SimpleUploadedFile("foto.jpg", buffer.getvalue(), content_type="image/jpeg")
 
 
@@ -220,3 +237,108 @@ class GruposIATests(TestCase):
         datos = self.reconocer("Bloque B")
         self.assertEqual(datos["zona"]["nombre"], "Bloque B")
         self.assertIsNone(datos["grupo"])
+
+
+def resultado_ia(*detecciones):
+    """Resultado falso de la IA: detecciones (clase, confianza), la primera es la mejor."""
+    lista = [{"clase": c, "confianza": p, "caja": [0, 0, 10, 10]} for c, p in detecciones]
+    mejor = lista[0] if lista else {"clase": None, "confianza": 0.0}
+    return {"zona": mejor["clase"], "confianza": mejor["confianza"], "detecciones": lista,
+            "modo": "ia_service", "simulado": False}
+
+
+class RespuestaInteligenteTests(TestCase):
+    """Foto mala, dudas entre zonas, GPS y fuera del campus (zonas/reconocimiento.py)."""
+
+    # Coordenadas de las zonas de prueba.
+    EN_ADMINISTRATIVO = {"latitud": -2.149970, "longitud": -79.602655, "precision": 10}
+    EN_GUAYAQUIL = {"latitud": -2.170998, "longitud": -79.922359, "precision": 20}
+
+    def setUp(self):
+        crear_campus_de_prueba()
+        self.client.login(username=crear_estudiante().username, password=CLAVE_PRUEBA)
+
+    def reconocer(self, resultado, foto="nitida", **gps):
+        with mock.patch("zonas.views.reconocer_zona", return_value=resultado):
+            return self.client.post("/api/zonas/reconocer/", {"foto": foto_jpeg(foto), **gps})
+
+    def nombres(self, datos):
+        return [o["zona"]["nombre"] for o in datos["opciones"]]
+
+    def test_calidad_detecta_foto_movida_y_oscura(self):
+        from vision.calidad import analizar_calidad
+
+        self.assertEqual(analizar_calidad(foto_jpeg())["nivel"], "buena")
+        self.assertEqual(analizar_calidad(foto_jpeg("borrosa"))["problemas"], ["borrosa"])
+        self.assertEqual(analizar_calidad(foto_jpeg("oscura"))["problemas"], ["oscura"])
+
+    def test_foto_clara_y_segura_se_reconoce(self):
+        respuesta = self.reconocer(resultado_ia(("Bloque B", 0.9)))
+        self.assertEqual(respuesta.status_code, 200)
+        datos = respuesta.json()
+        self.assertEqual(datos["zona"]["nombre"], "Bloque B")
+        self.assertIsNone(datos["motivo"])
+        self.assertEqual(datos["calidad"]["nivel"], "buena")
+
+    def test_foto_movida_pide_otra_con_consejo_y_opciones(self):
+        respuesta = self.reconocer(resultado_ia(("Bloque B", 0.75)), foto="borrosa")
+        self.assertEqual(respuesta.status_code, 400)
+        datos = respuesta.json()
+        self.assertEqual(datos["motivo"], "foto_mala")
+        self.assertEqual(datos["semaforo"], "rojo")
+        self.assertIn("movida", datos["calidad"]["consejos"][0])
+        self.assertEqual(self.nombres(datos), ["Bloque B"])
+
+    def test_foto_movida_pero_ia_muy_segura_se_reconoce_con_consejo(self):
+        respuesta = self.reconocer(resultado_ia(("Bloque B", 0.93)), foto="borrosa")
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(respuesta.json()["calidad"]["problemas"], ["borrosa"])
+
+    def test_dos_bloques_parecidos_pregunta_cual(self):
+        respuesta = self.reconocer(resultado_ia(("Bloque B", 0.80), ("Bloque C", 0.76)))
+        self.assertEqual(respuesta.status_code, 400)
+        datos = respuesta.json()
+        self.assertEqual(datos["motivo"], "dudosa")
+        self.assertEqual(self.nombres(datos), ["Bloque B", "Bloque C"])
+        self.assertEqual(datos["opciones"][0]["confianza"], 0.8)
+
+    def test_confianza_baja_ofrece_la_zona_probable(self):
+        datos = self.reconocer(resultado_ia(("Bloque C", 0.45))).json()
+        self.assertEqual(datos["motivo"], "dudosa")
+        self.assertEqual(self.nombres(datos), ["Bloque C"])
+
+    def test_fuera_del_campus_por_gps(self):
+        respuesta = self.reconocer(resultado_ia(("Bloque B", 0.9)), **self.EN_GUAYAQUIL)
+        self.assertEqual(respuesta.status_code, 400)
+        datos = respuesta.json()
+        self.assertEqual(datos["motivo"], "fuera_del_campus")
+        self.assertIn("solo funciona dentro de la universidad", datos["mensaje"])
+        self.assertEqual(datos["opciones"], [])
+
+    def test_gps_descarta_zona_que_no_cuadra_y_ofrece_la_cercana(self):
+        # La IA dice Bloque B, pero el celular está junto al Bloque Administrativo (~215 m).
+        datos = self.reconocer(resultado_ia(("Bloque B", 0.9)), **self.EN_ADMINISTRATIVO).json()
+        self.assertEqual(datos["motivo"], "dudosa")
+        self.assertEqual(self.nombres(datos)[0], "Bloque Administrativo")
+        self.assertEqual(datos["opciones"][0]["distancia_m"], 0)
+
+    def test_sin_deteccion_con_gps_ofrece_lo_que_esta_cerca(self):
+        datos = self.reconocer(resultado_ia(), **self.EN_ADMINISTRATIVO).json()
+        self.assertEqual(datos["motivo"], "dudosa")
+        self.assertIn("cerca", datos["mensaje"])
+        self.assertIn("Bloque Administrativo", self.nombres(datos))
+
+    def test_sin_deteccion_ni_gps_explica_que_es_solo_para_el_campus(self):
+        datos = self.reconocer(resultado_ia()).json()
+        self.assertEqual(datos["motivo"], "sin_deteccion")
+        self.assertIn("campus UNEMI", datos["mensaje"])
+        # Se mantiene el detalle de siempre para los clientes anteriores.
+        self.assertEqual(
+            datos["detalle"], "No pudimos reconocer tu ubicación, intenta con mejor iluminación."
+        )
+
+    def test_gps_coherente_confirma_la_zona(self):
+        respuesta = self.reconocer(resultado_ia(("Bloque Administrativo", 0.7)),
+                                   **self.EN_ADMINISTRATIVO)
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(respuesta.json()["zona"]["nombre"], "Bloque Administrativo")

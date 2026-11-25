@@ -19,11 +19,13 @@ from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 
+from vision.calidad import analizar_calidad
 from vision.services import reconocer_zona
 from vision.utils import UMBRAL_AMARILLO, clasificar_confianza
 
 from .grupos_ia import es_clase_sin_zona, grupo_de_clase, info_grupo
 from .models import Destino, Zona
+from .reconocimiento import Ubicacion, decidir
 from .serializers import DestinoSerializer, FotoReconocimientoSerializer, ZonaSerializer
 
 MENSAJE_SIN_DATOS = "No hay datos disponibles."
@@ -110,14 +112,28 @@ class ZonaViewSet(SinDatosMixin, viewsets.ReadOnlyModelViewSet):
             {"reconocida": true, "semaforo": "verde", "mensaje": "...",
              "confianza": 0.91, "zona": {...}, "detecciones": [...],
              "modo": "simulado", "simulado": true, "tiempo_ms": 42,
-             "grupo": {"clase": "Bloque H", "incluye": [...], "cerca": [...]} | null}
+             "grupo": {"clase": "Bloque H", "incluye": [...], "cerca": [...]} | null,
+             "motivo": null, "opciones": [], "calidad": {"nivel": "buena", ...}}
+
+        Campos opcionales: ``latitud``, ``longitud`` y ``precision`` (GPS del celular).
+        Si no se reconoce (400, semáforo rojo), ``motivo`` dice por qué
+        ("dudosa", "foto_mala", "fuera_del_campus", "sin_deteccion") y
+        ``opciones`` trae las zonas más probables para que el estudiante elija.
+        Reglas en zonas/reconocimiento.py.
         """
         entrada = FotoReconocimientoSerializer(data=request.data)
         entrada.is_valid(raise_exception=True)
+        datos = entrada.validated_data
+        foto = datos["foto"]
+        ubicacion = None
+        if datos.get("latitud") is not None and datos.get("longitud") is not None:
+            ubicacion = Ubicacion(datos["latitud"], datos["longitud"], datos.get("precision"))
 
         # Se mide el tiempo para la métrica del proyecto (<= 5 s).
         inicio = time.perf_counter()
-        resultado = reconocer_zona(entrada.validated_data["foto"])
+        calidad = analizar_calidad(foto)
+        resultado = reconocer_zona(foto)
+        decision = decidir(resultado, calidad, ubicacion, buscar_zona)
         tiempo_ms = round((time.perf_counter() - inicio) * 1000)
 
         respuesta = {
@@ -128,32 +144,58 @@ class ZonaViewSet(SinDatosMixin, viewsets.ReadOnlyModelViewSet):
             "simulado": resultado["simulado"],
             "tiempo_ms": tiempo_ms,
             "grupo": None,
+            # Nuevos: por qué no se reconoció, zonas para elegir y consejos de la foto.
+            "motivo": decision["motivo"],
+            "opciones": [
+                {
+                    "zona": ZonaSerializer(o["zona"], context={"request": request}).data,
+                    "confianza": o["confianza"],
+                    "distancia_m": o["distancia_m"],
+                }
+                for o in decision["opciones"]
+            ],
+            "calidad": calidad,
         }
         if resultado.get("aviso"):
             # Ej.: el microservicio de IA no respondió y se usó la simulación.
             respuesta["aviso"] = resultado["aviso"]
 
-        # YOLO no detectó nada o la confianza es baja (< 0.65): 400 + semáforo rojo.
-        # También si la IA dijo que la foto no es ninguna zona ("Nada").
-        if (
-            not resultado["zona"]
-            or resultado["confianza"] < UMBRAL_AMARILLO
-            or es_clase_sin_zona(resultado["zona"])
-        ):
+        if decision["motivo"] is not None:
+            clase = resultado["zona"]
+            if (
+                decision["motivo"] == "sin_deteccion"
+                and clase
+                and resultado["confianza"] >= UMBRAL_AMARILLO
+                and not es_clase_sin_zona(clase)
+                and buscar_zona(clase) is None
+            ):
+                # La IA devolvió una zona que el administrador aún no registró.
+                return respuesta_sin_datos()
+
+            # No reconocida: 400 + semáforo rojo, con el mensaje y las opciones.
+            detalle = (
+                MENSAJE_NO_RECONOCIDA
+                if decision["motivo"] in {"sin_deteccion", "foto_mala"}
+                else decision["mensaje"]
+            )
             return Response(
-                {**respuesta, **clasificar_confianza(0.0, ""), "detalle": MENSAJE_NO_RECONOCIDA},
+                {
+                    **respuesta,
+                    **clasificar_confianza(0.0, ""),
+                    "mensaje": decision["mensaje"],
+                    "detalle": detalle,
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        zona = buscar_zona(resultado["zona"])
-        if zona is None:
-            # La IA devolvió una zona que el administrador aún no registró.
-            return respuesta_sin_datos()
-
-        semaforo = clasificar_confianza(resultado["confianza"], zona.nombre_completo)
+        zona = decision["zona"]
+        respuesta["confianza"] = decision["confianza"]
+        semaforo = clasificar_confianza(decision["confianza"], zona.nombre_completo)
         respuesta["zona"] = ZonaSerializer(zona, context={"request": request}).data
         # Lugares que abarca la clase detectada y lo que hay cerca (o None).
-        respuesta["grupo"] = info_grupo(resultado["zona"])
+        clase = resultado["zona"]
+        es_la_clase = clase and buscar_zona(clase) == zona
+        respuesta["grupo"] = info_grupo(clase if es_la_clase else zona.nombre)
         return Response({**respuesta, **semaforo})
 
 

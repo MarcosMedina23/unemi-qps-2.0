@@ -50,9 +50,17 @@ class DestinoSerializer(serializers.ModelSerializer):
 
 
 class FotoReconocimientoSerializer(serializers.Serializer):
-    """Valida la foto enviada para reconocer la zona."""
+    """
+    Valida la foto enviada para reconocer la zona.
+
+    latitud/longitud/precision son opcionales: la web las manda solo si la foto
+    se tomó con la cámara y el estudiante dio permiso de ubicación.
+    """
 
     foto = serializers.ImageField()
+    latitud = serializers.FloatField(required=False, min_value=-90, max_value=90)
+    longitud = serializers.FloatField(required=False, min_value=-180, max_value=180)
+    precision = serializers.FloatField(required=False, min_value=0)
 
     def validate_foto(self, foto):
         try:

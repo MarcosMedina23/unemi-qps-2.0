@@ -82,7 +82,7 @@ const Camara = (() => {
         lienzo.getContext("2d").drawImage(video, 0, 0, lienzo.width, lienzo.height);
         lienzo.toBlob(
             (blob) => {
-                if (blob) alTenerFoto(new File([blob], "foto.jpg", { type: "image/jpeg" }));
+                if (blob) alTenerFoto(new File([blob], "foto.jpg", { type: "image/jpeg" }), "camara");
             },
             "image/jpeg",
             CALIDAD_JPEG
@@ -92,14 +92,18 @@ const Camara = (() => {
     function elegirDeGaleria() {
         const archivo = entradaGaleria.files[0];
         entradaGaleria.value = ""; // Permite volver a elegir la misma foto.
-        if (archivo) alTenerFoto(archivo);
+        if (archivo) alTenerFoto(archivo, "galeria");
     }
 
     botonTomarFoto.addEventListener("click", tomarFoto);
     entradaGaleria.addEventListener("change", elegirDeGaleria);
 
     return {
-        /** @param {(foto: File) => void} callback - Se llama con cada foto nueva. */
+        /**
+         * @param {(foto: File, origen: "camara"|"galeria") => void} callback
+         *   Se llama con cada foto nueva. La ubicación GPS solo sirve con "camara"
+         *   (una foto de la galería pudo tomarse en otro lugar).
+         */
         configurar(callback) {
             alTenerFoto = callback;
         },

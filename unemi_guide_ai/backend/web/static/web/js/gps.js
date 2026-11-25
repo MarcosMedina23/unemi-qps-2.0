@@ -103,5 +103,30 @@ const Gps = (() => {
         bloqueoPantalla = null;
     }
 
-    return { disponible, iniciar, detener, aMetros };
+    /**
+     * Una sola lectura de la ubicación, para acompañar la foto al reconocer la zona.
+     * Nunca falla: si no hay permiso, señal o tarda más de `esperaMs`, devuelve null
+     * y la app reconoce solo con la foto.
+     * @returns {Promise<{latitud:number,longitud:number,precision:number}|null>}
+     */
+    function ubicacionActual(esperaMs = 5000) {
+        if (!disponible()) return Promise.resolve(null);
+        return new Promise((resolver) => {
+            const limite = setTimeout(() => resolver(null), esperaMs + 500);
+            navigator.geolocation.getCurrentPosition(
+                (lectura) => {
+                    clearTimeout(limite);
+                    const { latitude, longitude, accuracy } = lectura.coords;
+                    resolver({ latitud: latitude, longitud: longitude, precision: accuracy || 0 });
+                },
+                () => {
+                    clearTimeout(limite);
+                    resolver(null);
+                },
+                { enableHighAccuracy: true, maximumAge: 30000, timeout: esperaMs }
+            );
+        });
+    }
+
+    return { disponible, iniciar, detener, aMetros, ubicacionActual };
 })();

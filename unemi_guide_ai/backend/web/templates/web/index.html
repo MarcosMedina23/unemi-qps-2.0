@@ -152,6 +152,7 @@
                     <p class="zona-detectada__mensaje" id="zona-mensaje"></p>
                     <p class="zona-detectada__grupo" id="zona-incluye" hidden></p>
                     <p class="zona-detectada__grupo" id="zona-cerca" hidden></p>
+                    <p class="nota nota--consejo" id="zona-consejo" hidden></p>
                     <div class="confianza">
                         <div class="confianza__fila">
                             <label class="confianza__etiqueta" for="zona-confianza">Confianza del reconocimiento</label>
@@ -306,11 +307,15 @@
 
         <!-- ===================== 9. Error de reconocimiento ===================== -->
         <section class="pantalla" data-pantalla="error-reconocimiento" aria-labelledby="titulo-error" hidden>
-            <article class="tarjeta mensaje-central mensaje-central--error">
-                <span class="mensaje-central__icono" aria-hidden="true">📷</span>
+            <!-- El contenido cambia según el motivo (app.js → mostrarNoReconocida):
+                 foto mala, dudosa (opciones para elegir), fuera del campus o sin detección. -->
+            <article class="tarjeta mensaje-central mensaje-central--error" id="error-tarjeta">
+                <span class="mensaje-central__icono" id="error-icono" aria-hidden="true">📷</span>
                 <h1 class="pantalla__titulo" id="titulo-error">No pudimos reconocer tu ubicación</h1>
-                <p class="pantalla__texto">La imagen no es lo suficientemente clara. Intenta tomar otra foto con mejor iluminación.</p>
-                <a class="boton boton--primario boton--grande" href="#camara">Tomar otra foto</a>
+                <p class="pantalla__texto" id="error-texto">La imagen no es lo suficientemente clara. Intenta tomar otra foto con mejor iluminación.</p>
+                <ul class="consejos" id="error-consejos" hidden></ul>
+                <div class="opciones-zona" id="error-opciones" hidden></div>
+                <a class="boton boton--primario boton--grande" id="error-boton" href="#camara">Tomar otra foto</a>
             </article>
         </section>
 

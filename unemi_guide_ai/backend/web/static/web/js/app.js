@@ -146,10 +146,17 @@
     /* ==================================================================
      * 2-3. Foto → reconocimiento de zona
      * ================================================================ */
-    async function analizarFoto(foto) {
+    async function analizarFoto(foto, origen = "camara") {
         estado.foto = foto;
+        // Con la cámara se manda también el GPS (si hay permiso): así se sabe si está
+        // fuera del campus y, si la foto no es clara, qué bloques tiene cerca.
+        let ubicacion = null;
+        if (origen === "camara" && Gps.disponible()) {
+            cargando(true, "Ubicándote…");
+            ubicacion = await Gps.ubicacionActual();
+        }
         cargando(true, "Analizando tu foto…");
-        const respuesta = await Api.reconocerZona(foto);
+        const respuesta = await Api.reconocerZona(foto, ubicacion);
         cargando(false);
 
         // El servicio de IA no respondió y se usó la simulación.
@@ -161,6 +168,7 @@
         }
         // 400 con semáforo rojo: la IA no reconoció la zona en la foto.
         if (respuesta.estado === 400 && respuesta.datos.semaforo === "rojo") {
+            mostrarNoReconocida(respuesta.datos);
             irA("error-reconocimiento");
             return;
         }
@@ -194,6 +202,11 @@
         const grupo = resultado.grupo || {};
         mostrarLista("zona-incluye", "Esta zona incluye: ", grupo.incluye);
         mostrarLista("zona-cerca", "Cerca: ", grupo.cerca);
+        // Foto regular: se reconoció, pero se da un consejo para la próxima.
+        const consejos = (resultado.calidad && resultado.calidad.consejos) || [];
+        const consejo = document.getElementById("zona-consejo");
+        consejo.hidden = consejos.length === 0;
+        consejo.textContent = consejos.length ? `Consejo: ${consejos[0]}` : "";
         document.getElementById("zona-confianza").value = resultado.confianza;
         document.getElementById("zona-confianza-texto").textContent = `${Math.round(resultado.confianza * 100)} %`;
         document.getElementById("zona-nota-simulada").hidden = !resultado.simulado;
@@ -204,6 +217,67 @@
                 : `${(resultado.tiempo_ms / 1000).toFixed(2)} s`;
         document.getElementById("zona-tiempo").textContent =
             `Analizada en ${tiempo} · ${resultado.detecciones.length} detecciones`;
+    }
+
+    /** Ícono, título y botón de la pantalla "no reconocida" según el motivo. */
+    const PANTALLA_POR_MOTIVO = {
+        dudosa: { icono: "🤔", titulo: "¿Dónde estás exactamente?", tipo: "aviso", boton: "Ninguno: tomar otra foto" },
+        foto_mala: { icono: "📷", titulo: "La foto no se ve bien", tipo: "error", boton: "Tomar otra foto" },
+        fuera_del_campus: { icono: "🏫", titulo: "Estás fuera del campus UNEMI", tipo: "aviso", boton: "Volver a intentar" },
+        sin_deteccion: { icono: "🔍", titulo: "No reconocimos este lugar", tipo: "error", boton: "Tomar otra foto" },
+    };
+
+    /**
+     * Pantalla "no reconocida": explica el motivo, da consejos de la foto y, si hay,
+     * muestra las zonas más probables (o las cercanas por GPS) para que el
+     * estudiante elija desde dónde parte.
+     */
+    function mostrarNoReconocida(datos) {
+        const motivo = PANTALLA_POR_MOTIVO[datos.motivo] ? datos.motivo : "sin_deteccion";
+        const pantalla = PANTALLA_POR_MOTIVO[motivo];
+        const opciones = datos.opciones || [];
+        const consejos = (datos.calidad && datos.calidad.consejos) || [];
+
+        document.getElementById("error-tarjeta").className =
+            `tarjeta mensaje-central mensaje-central--${pantalla.tipo}`;
+        document.getElementById("error-icono").textContent = pantalla.icono;
+        document.getElementById("titulo-error").textContent = pantalla.titulo;
+        document.getElementById("error-texto").textContent = datos.mensaje || datos.detalle || "";
+        document.getElementById("error-boton").textContent =
+            opciones.length ? "Ninguno: tomar otra foto" : pantalla.boton;
+
+        // Consejos de la foto (movida, oscura, sol de frente...).
+        const listaConsejos = document.getElementById("error-consejos");
+        const mostrarConsejos = motivo !== "fuera_del_campus" && consejos.length > 0;
+        listaConsejos.hidden = !mostrarConsejos;
+        listaConsejos.replaceChildren(...(mostrarConsejos ? consejos.map((c) => crear("li", "", c)) : []));
+
+        // Opciones: "¿Estás en el Bloque K o en el Bloque L?"
+        const contenedor = document.getElementById("error-opciones");
+        contenedor.hidden = opciones.length === 0;
+        contenedor.replaceChildren(
+            ...opciones.map((opcion) => {
+                const boton = crear("button", "boton boton--contorno boton--bloque opcion-zona");
+                boton.type = "button";
+                const detalle = opcion.distancia_m != null
+                    ? `a unos ${opcion.distancia_m} m de ti`
+                    : opcion.confianza != null ? `${Math.round(opcion.confianza * 100)} % de parecido` : "";
+                boton.append(
+                    crear("span", "opcion-zona__nombre", opcion.zona.nombre_completo || opcion.zona.nombre),
+                    crear("span", "opcion-zona__detalle", detalle)
+                );
+                boton.addEventListener("click", () => elegirZona(opcion.zona));
+                return boton;
+            })
+        );
+    }
+
+    /** El estudiante eligió una de las opciones: se usa como su punto de partida. */
+    function elegirZona(zona) {
+        estado.zona = zona;
+        estado.ruta = null;
+        avisar(`Listo: partimos desde ${zona.nombre}.`, "exito");
+        irA("destinos");
     }
 
     /** Muestra "Etiqueta: a, b, c" en el elemento, o lo oculta si la lista está vacía. */

@@ -35,6 +35,19 @@ Backend Django en `backend/` (pruebas: `cd backend && python manage.py test`).
   (`zona`, `confianza`, `semaforo`, `mensaje`, `detecciones`, `modo`, `simulado`,
   `tiempo_ms`, `grupo`): la web y Unity dependen de ellos.
 
+### Respuesta "inteligente" (`backend/zonas/reconocimiento.py`, `backend/vision/calidad.py`)
+
+- Siempre se busca dar la respuesta más acertada; nunca un simple "no sé" si hay pistas.
+- Se juntan tres pistas: IA (todas las detecciones), calidad de la foto (Pillow:
+  movida, oscura, quemada, tapada, pequeña) y GPS del celular (opcional).
+- El GPS solo se manda si la foto viene de la **cámara** (no de la galería).
+- `motivo` en la respuesta 400: `dudosa` (con `opciones` para elegir), `foto_mala`
+  (consejos + opciones), `fuera_del_campus`, `sin_deteccion`. `detalle` conserva el
+  mensaje de siempre para `sin_deteccion` y `foto_mala`.
+- Foto mala solo se rechaza si la IA no está muy segura (< 0.85).
+- Los umbrales de calidad se calibraron con fotos reales a 512 px; si se cambian,
+  probar con `foto_jpeg("borrosa"/"oscura")` de `zonas/tests.py`.
+
 ## Mapa del GPS y rutas
 
 - Los grupos de la IA **no** cambian el mapa. **No borrar zonas ni destinos del GPS**
