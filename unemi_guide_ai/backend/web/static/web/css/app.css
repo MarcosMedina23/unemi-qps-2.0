@@ -527,6 +527,21 @@ select {
     opacity: 0.8;
 }
 
+/* Interruptor "Usar mi ubicación (GPS)" en la pantalla de la cámara */
+.interruptor-gps {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    font-size: 0.95rem;
+    cursor: pointer;
+}
+
+.interruptor-gps input {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--color-marca);
+}
+
 .nota--consejo {
     font-style: italic;
 }

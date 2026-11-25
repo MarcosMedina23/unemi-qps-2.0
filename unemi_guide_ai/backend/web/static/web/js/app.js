@@ -146,12 +146,35 @@
     /* ==================================================================
      * 2-3. Foto → reconocimiento de zona
      * ================================================================ */
+    /*
+     * Interruptor "Usar mi ubicación (GPS)". Se apaga para probar la app fuera del
+     * campus (presentaciones): así no responde "Estás fuera del campus".
+     * Se recuerda en este navegador; si el almacenamiento falla, queda encendido.
+     */
+    const CLAVE_USAR_GPS = "unemi-usar-gps";
+    const usarGps = document.getElementById("usar-gps");
+    const notaGpsApagado = document.getElementById("usar-gps-nota");
+    try {
+        usarGps.checked = localStorage.getItem(CLAVE_USAR_GPS) !== "no";
+    } catch (error) {
+        usarGps.checked = true;
+    }
+    notaGpsApagado.hidden = usarGps.checked;
+    usarGps.addEventListener("change", () => {
+        notaGpsApagado.hidden = usarGps.checked;
+        try {
+            localStorage.setItem(CLAVE_USAR_GPS, usarGps.checked ? "si" : "no");
+        } catch (error) {
+            /* Sin almacenamiento: vale solo mientras la página esté abierta. */
+        }
+    });
+
     async function analizarFoto(foto, origen = "camara") {
         estado.foto = foto;
         // Con la cámara se manda también el GPS (si hay permiso): así se sabe si está
         // fuera del campus y, si la foto no es clara, qué bloques tiene cerca.
         let ubicacion = null;
-        if (origen === "camara" && Gps.disponible()) {
+        if (origen === "camara" && usarGps.checked && Gps.disponible()) {
             cargando(true, "Ubicándote…");
             ubicacion = await Gps.ubicacionActual();
         }

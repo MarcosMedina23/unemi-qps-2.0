@@ -134,6 +134,12 @@
                         Subir desde galería
                     </label>
                     <input class="oculto" id="entrada-galeria" type="file" accept="image/*">
+                    <!-- Apagarlo para probar fuera del campus (p. ej. en una presentación). -->
+                    <label class="interruptor-gps" for="usar-gps">
+                        <input id="usar-gps" type="checkbox" checked>
+                        <span>Usar mi ubicación (GPS) al tomar la foto</span>
+                    </label>
+                    <p class="nota" id="usar-gps-nota" hidden>GPS apagado: la zona se reconoce solo con la foto.</p>
                     <p class="nota">Detecciones simuladas: el modelo YOLO todavía se está entrenando.</p>
                 </div>
             </div>
