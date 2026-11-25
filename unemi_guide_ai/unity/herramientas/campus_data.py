@@ -41,7 +41,7 @@ EDIFICIOS = [
     ("BANOS_1",  "Baños",               "Servicio", 467, 1447, 60, 25, 5, 4,  "bano"),
     ("I",        "Bloque I",            "Bloque",   540, 1318, 65, 40, 5, 9,  "auto"),
     ("H",        "Bloque H",            "Bloque",   587, 1180, 55, 125, 5, 12, "auto"),
-    ("ED_H_N",   "",                    "Edificio", 585, 1105, 40, 20, 5, 6,  "auto"),
+    ("ED_H_N",   "Bloque F",            "Bloque",   585, 1105, 40, 20, 5, 6,  "auto"),   # anexo norte del Bloque H
     ("B",        "Bloque B",            "Bloque",   683, 1125, 90, 55, 5, 9,  "auto"),
     ("ED_B_N",   "",                    "Edificio", 692, 1082, 65, 28, 5, 6,  "auto"),
     ("C",        "Bloque C",            "Bloque",   690, 1240, 65, 40, 5, 9,  "auto"),
