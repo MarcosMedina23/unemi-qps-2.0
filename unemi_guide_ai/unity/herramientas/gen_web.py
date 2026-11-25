@@ -31,6 +31,7 @@ LUGARES = {
     "I": ("Bloque I", "bloque", "Bloque del campus"),
     "J": ("Bloque J", "bloque", "Bloque del campus"),
     "K": ("Bloque K", "bloque", "Bloque del campus"),
+    "ED_M_N": ("Bloque L", "bloque", "Bloque del campus"),   # anexo norte del Bloque M
     "M": ("Bloque M", "bloque", "Bloque del campus"),
     "N": ("Bloque N", "bloque", "Bloque del campus"),
     "O": ("Bloque O", "bloque", "Bloque del campus"),
@@ -47,7 +48,6 @@ LUGARES = {
     "POSGRADO": ("Posgrado", "bloque", "Bloque de Posgrado"),
     "CRAI": ("CRAI", "biblioteca", "Biblioteca (CRAI)"),
     "BIOTEC": ("Bloque de Investigación de Biotecnología", "bloque", "Investigación"),
-    "ED_M_N": ("Edificio anexo (Bloque M)", "edificio", "Edificio del campus"),
     "ED_B_N": ("Edificio anexo (Bloque B)", "edificio", "Edificio del campus"),
     "ED_C_O": ("Edificio anexo (Bloque C)", "edificio", "Edificio del campus"),
     "ED_POSG": ("Edificio anexo (Posgrado)", "edificio", "Edificio del campus"),
