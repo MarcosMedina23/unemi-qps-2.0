@@ -22,7 +22,7 @@ from rest_framework.response import Response
 from vision.services import reconocer_zona
 from vision.utils import UMBRAL_AMARILLO, clasificar_confianza
 
-from .grupos_ia import grupo_de_clase, info_grupo
+from .grupos_ia import es_clase_sin_zona, grupo_de_clase, info_grupo
 from .models import Destino, Zona
 from .serializers import DestinoSerializer, FotoReconocimientoSerializer, ZonaSerializer
 
@@ -134,7 +134,12 @@ class ZonaViewSet(SinDatosMixin, viewsets.ReadOnlyModelViewSet):
             respuesta["aviso"] = resultado["aviso"]
 
         # YOLO no detectó nada o la confianza es baja (< 0.65): 400 + semáforo rojo.
-        if not resultado["zona"] or resultado["confianza"] < UMBRAL_AMARILLO:
+        # También si la IA dijo que la foto no es ninguna zona ("Nada").
+        if (
+            not resultado["zona"]
+            or resultado["confianza"] < UMBRAL_AMARILLO
+            or es_clase_sin_zona(resultado["zona"])
+        ):
             return Response(
                 {**respuesta, **clasificar_confianza(0.0, ""), "detalle": MENSAJE_NO_RECONOCIDA},
                 status=status.HTTP_400_BAD_REQUEST,

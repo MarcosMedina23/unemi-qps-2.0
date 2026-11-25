@@ -10,7 +10,13 @@ Backend Django en `backend/` (pruebas: `cd backend && python manage.py test`).
   mayúsculas). Toda comparación de nombres de clase debe usar `clave_nombre()`.
 - La lista oficial de clases está en `backend/ml/roboflow/clases_zonas.txt` y debe ser
   **idéntica** a `CLASES_DE_LA_APP` en `backend/ml/entrenar_yolo_colab.ipynb`
-  (hoy son 30). Si cambias una, cambia la otra y `docs/entrenar_yolo_roboflow.md`.
+  (hoy son 29). Si cambias una, cambia la otra y `docs/entrenar_yolo_roboflow.md`.
+- `Area verde sur` **no** es clase de la IA (lote vacío), pero **sigue** como zona/destino
+  del mapa del GPS. No borrarla.
+- Fotos que no son ninguna zona se suben a Roboflow como **Null** (sin recuadro). Si el
+  modelo devuelve una clase de `CLASES_SIN_ZONA` ("Nada"...), la app responde
+  "no reconocida" (400, semáforo rojo).
+- El entrenamiento usa `fliplr=0.0` (sin espejo: los letreros deben leerse bien).
 
 ### Grupos (`backend/zonas/grupos_ia.py`)
 

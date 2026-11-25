@@ -27,18 +27,21 @@ la app las une sola con la zona correcta (ignora tildes, signos y mayúsculas):
 | `Bloque de Investigacion de Biotecnologia` | Bloque de Investigación de Biotecnología |
 | `Entrada de vehiculos` | Entrada de vehículos |
 
-Son **30 clases**:
+Son **29 clases**:
 
 | Bloques | Edificios | Deportes, accesos y exteriores |
 |---|---|---|
 | Bloque B · Bloque C · Bloque E · Bloque F | CRAI | Estadio Universitario UNEMI |
 | Bloque H · Bloque I · Bloque J | Posgrado | Piscina UNEMI |
 | Bloque K · Bloque L · Bloque M · Bloque N | SIM | Entrada de vehiculos |
-| Bloque O · Bloque P · Bloque R | CDIP | Area verde -Bloques R-U- · Area verde sur |
+| Bloque O · Bloque P · Bloque R | CDIP | Area verde -Bloques R-U- |
 | Bloque S · Bloque T -FACI- · Bloque U | Bloque de Investigacion de Biotecnologia | Estacionamiento 1 · Estacionamiento 2 |
 | Bloques V-W-X | | |
 
 No se usan los baños ni los edificios anexos: se parecen entre sí y confunden al modelo.
+**Area verde sur** tampoco es clase: es un lote vacío sin nada que lo distinga. Sigue en el
+mapa del GPS como referencia de las rutas; si ya tiene fotos en Roboflow, márcalas como
+**Nada** (ver abajo) o bórralas.
 En áreas verdes y estacionamientos usa fotos donde se vea algo que los distinga
 (bancas, letreros o un bloque al fondo).
 
@@ -71,13 +74,38 @@ reasigna sus fotos según la regla de arriba y bórralas antes de generar la ver
 cerca hay un **baño** y un **bar**. No son clases ni lugares del mapa (no tenemos su
 ubicación exacta).
 
+### Fotos "Nada": que el modelo aprenda a decir "no sé"
+
+Sube también fotos que **no son ninguna zona**: pasillos por dentro, aulas, cielo, suelo,
+árboles sueltos, gente de cerca, el Area verde sur. En Roboflow ábrelas en **Annotate** y
+pulsa **Mark Null** (sin recuadro). Así el modelo deja de adivinar una zona cuando la foto
+no muestra ninguna, y la app responde "no reconocida" (semáforo rojo).
+
+- Deben ser entre el **5 % y el 10 %** de todas las fotos (con 600 fotos: 30 a 60).
+- No crees una clase "Nada" con recuadro: en detección se hace con *Null*. (Si alguien la
+  crea igual, la app la trata como "no reconocida".)
+
 ### ¿Cuántas fotos?
 
-- Mínimo **40 fotos por zona**; lo ideal, 80 o más.
-- Con unas 300 fotos, empieza con **5 a 8 zonas** bien fotografiadas. Después se agregan
-  más zonas y se vuelve a entrenar.
-- Mezcla: de cerca y de lejos, distintos ángulos, mañana y tarde, con gente pasando.
-  Así se parecerán a la foto que toma un estudiante con su celular.
+- Mínimo **40 fotos por zona**; lo ideal, 80 o más. El notebook (paso 3b) avisa con ⚠️
+  qué zonas tienen menos de 40.
+- Con 300 a 1000 fotos no alcanza para las 29 zonas: entrena primero las zonas que ya
+  tienen 40+ y en el siguiente entrenamiento agrega las demás. Una zona con 10 fotos
+  hace que el modelo se equivoque también en las otras.
+- **Parecidas a la foto del estudiante**: con el celular, en vertical, a la altura de los
+  ojos, desde los caminos por donde se camina; de cerca y de lejos, mañana y tarde, con
+  gente pasando. Evita fotos de dron o sacadas de internet.
+- **Variedad, no cantidad repetida**: 10 fotos casi iguales (ráfaga) valen como 1, y si
+  quedan unas en *train* y otras en *test* el resultado parece mejor de lo que es.
+- **Que se vea lo que distingue la zona**: el letrero con la letra del bloque, la entrada,
+  un detalle único. Para Bloques I-J, K-L-M, O-P, toma fotos donde se lea el letrero.
+
+### Cómo dibujar el recuadro
+
+- Cubre **todo el edificio o lugar visible** (no solo el letrero), ajustado a sus bordes.
+- Si en la foto se ven bien **dos zonas**, marca las dos con su clase.
+- Si una zona sale muy pequeña al fondo (menos de 1/10 de la foto), no la marques.
+- Sé constante: todas las personas del equipo deben recuadrar igual.
 
 ---
 
@@ -93,6 +121,7 @@ ubicación exacta).
 5. **Versions → Generate New Version**:
    - *Preprocessing*: Auto-Orient y Resize a 640×640 (Stretch).
    - *Augmentations*: Brightness (±20 %), Rotation (±10°), Blur leve.
+     **No uses Flip** (espejo): los letreros quedarían al revés y confunde bloques.
    - **Create**.
 6. En la versión creada: **Download Dataset** → formato **YOLO26** → **Show download code**
    → copia el código de *Jupyter*. Lo pegarás en Colab.
@@ -108,16 +137,21 @@ ubicación exacta).
    1. Instala `ultralytics` y `roboflow`.
    2. Pega el código de Roboflow (descarga las fotos).
    3. **Revisa los nombres**: todos deben salir con ✅.
-   4. Entrena YOLO26n (20–60 min).
-   5. Muestra el **mAP50** y la matriz de confusión.
-   6. Prueba con fotos que el modelo nunca vio.
-   7. Descarga **`modelo_unemi.zip`**.
+   4. **3b. Cuenta las fotos** por zona y las fotos *Nada*: corrige las ⚠️ si puedes.
+   5. Entrena YOLO26n (30–90 min; sin espejo, con cambios de luz).
+   6. Muestra el **mAP50** y la matriz de confusión.
+   7. **Acierto de zona** en las fotos de *test*, igual que decide la app
+      (detección con más confianza, mínimo 0.65), con la lista de fotos falladas.
+   8. Descarga **`modelo_unemi.zip`**.
 
-| mAP50 | Significado |
-|---|---|
-| > 0.8 | Bueno |
-| 0.6 – 0.8 | Aceptable para una demo |
-| < 0.6 | Faltan fotos o hay recuadros mal puestos |
+| Acierto de zona (paso 7) | mAP50 (paso 6) | Significado |
+|---|---|---|
+| > 85 % | > 0.8 | Listo para la app |
+| 70 – 85 % | 0.6 – 0.8 | Aceptable para una demo |
+| < 70 % | < 0.6 | Faltan fotos o hay recuadros mal puestos |
+
+El **acierto de zona** es el número que importa para el estudiante. Si una zona aparece
+mucho en los errores, a esa le faltan fotos (o se confunde con la que el modelo dijo).
 
 ---
 

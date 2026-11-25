@@ -11,7 +11,8 @@
 #   Bloque H                    = Bloque H, su bar y la Entrada peatonal
 #   Estadio Universitario UNEMI = estadio, polideportivo, su bar y las Canchas
 #   Piscina UNEMI               = piscina, gimnasio y Monumento de las Banderas
-# Total: 30 clases.
+# Total: 29 clases. "Area verde sur" no es clase (lote vacío sin nada que lo
+# distinga), pero sigue en el mapa como referencia de las rutas.
 #
 # No se incluyen baños ni edificios anexos porque se parecen entre sí y
 # confunden al modelo. En áreas verdes y estacionamientos usa fotos donde se
@@ -43,6 +44,5 @@ Estadio Universitario UNEMI
 Piscina UNEMI
 Entrada de vehiculos
 Area verde -Bloques R-U-
-Area verde sur
 Estacionamiento 1
 Estacionamiento 2

@@ -200,6 +200,22 @@ class GruposIATests(TestCase):
         self.assertEqual(datos["grupo"]["cerca"], ["Baño", "Bar"])
         self.assertEqual(datos["grupo"]["incluye"], [])
 
+    def test_clase_nada_devuelve_semaforo_rojo(self):
+        nada = {"zona": "Nada", "confianza": 0.9, "detecciones": [], "modo": "ia_service",
+                "simulado": False}
+        with mock.patch("zonas.views.reconocer_zona", return_value=nada):
+            respuesta = self.client.post("/api/zonas/reconocer/", {"foto": foto_jpeg()})
+        self.assertEqual(respuesta.status_code, 400)
+        self.assertEqual(respuesta.json()["semaforo"], "rojo")
+        self.assertIsNone(respuesta.json()["zona"])
+
+    def test_area_verde_sur_sigue_siendo_zona_del_mapa(self):
+        # Ya no es clase de la IA, pero la zona y sus rutas no se borran.
+        from .views import buscar_zona
+
+        Zona.objects.create(nombre="Área verde sur", latitud=-2.15, longitud=-79.60)
+        self.assertEqual(buscar_zona("Area verde sur").nombre, "Área verde sur")
+
     def test_zona_sin_grupo_devuelve_grupo_null(self):
         datos = self.reconocer("Bloque B")
         self.assertEqual(datos["zona"]["nombre"], "Bloque B")

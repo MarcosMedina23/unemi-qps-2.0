@@ -42,6 +42,11 @@ CERCA_DE = {
     "Bloque N": ["Baño", "Bar"],
 }
 
+# Fotos que no son ninguna zona (pasillos, cielo, suelo, gente de cerca).
+# En Roboflow se suben como imágenes "Null" (sin recuadro); si alguien las crea
+# como clase, la app igual responde "no reconocida" (semáforo rojo).
+CLASES_SIN_ZONA = ["Nada", "Fondo", "Fuera del campus"]
+
 
 def _buscar(diccionario, nombre):
     """(clave original, valor) cuyo nombre coincide ignorando tildes y signos."""
@@ -49,6 +54,11 @@ def _buscar(diccionario, nombre):
 
     clave = clave_nombre(nombre or "")
     return next(((k, v) for k, v in diccionario.items() if clave_nombre(k) == clave), (None, None))
+
+
+def es_clase_sin_zona(nombre):
+    """True si la IA dijo que la foto no es ninguna zona ("Nada")."""
+    return _buscar(dict.fromkeys(CLASES_SIN_ZONA), nombre)[0] is not None
 
 
 def grupo_de_clase(nombre):
