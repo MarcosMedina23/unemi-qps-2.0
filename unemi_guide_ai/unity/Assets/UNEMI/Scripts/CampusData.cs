@@ -32,7 +32,7 @@ namespace UNEMI.Campus
             new EdificioDef("BANOS_1", "Baños", TipoLugar.Servicio, -32.85f, -201.15f, 27.0f, 11.25f, 5f, 4f, "#B0BEC5"),
             new EdificioDef("I", "Bloque I", TipoLugar.Bloque, 0.0f, -143.1f, 29.25f, 18.0f, 5f, 9f, "#1B5E20"),
             new EdificioDef("H", "Bloque H", TipoLugar.Bloque, 21.15f, -81.0f, 24.75f, 56.25f, 5f, 12f, "#3949AB"),
-            new EdificioDef("ED_H_N", "", TipoLugar.Edificio, 20.25f, -47.25f, 18.0f, 9.0f, 5f, 6f, "#E53935"),
+            new EdificioDef("ED_H_N", "Bloque F", TipoLugar.Bloque, 20.25f, -47.25f, 18.0f, 9.0f, 5f, 6f, "#E53935"),
             new EdificioDef("B", "Bloque B", TipoLugar.Bloque, 64.35f, -56.25f, 40.5f, 24.75f, 5f, 9f, "#43A047"),
             new EdificioDef("ED_B_N", "", TipoLugar.Edificio, 68.4f, -36.9f, 29.25f, 12.6f, 5f, 6f, "#039BE5"),
             new EdificioDef("C", "Bloque C", TipoLugar.Bloque, 67.5f, -108.0f, 29.25f, 18.0f, 5f, 9f, "#7CB342"),
