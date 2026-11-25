@@ -12,6 +12,7 @@
 Bloque B
 Bloque C
 Bloque E
+Bloque F
 Bloque H
 Bloque I
 Bloque J
