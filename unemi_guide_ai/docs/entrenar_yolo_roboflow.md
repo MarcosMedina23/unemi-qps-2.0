@@ -13,10 +13,19 @@ Para eso se entrena un modelo **YOLO26n** donde cada **clase es una zona**.
 
 ## La regla más importante: los nombres
 
-Cada clase debe llamarse **exactamente igual** que la zona en la app: mayúsculas,
-tildes, espacios y paréntesis. `Bloque T (FACI)` funciona; `bloque t` o `Bloque T`
-no. La lista oficial está en [`backend/ml/roboflow/clases_zonas.txt`](../backend/ml/roboflow/clases_zonas.txt)
-y el proyecto de Roboflow ya trae esas clases creadas.
+Cada clase corresponde a **una zona de la app**. El proyecto de Roboflow
+**`unemi-zonas`** (workspace *UNEMI Guide AI*) ya tiene las 29 clases creadas y
+**bloqueadas**: al etiquetar solo se elige de la lista, no se escribe. La lista está en
+[`backend/ml/roboflow/clases_zonas.txt`](../backend/ml/roboflow/clases_zonas.txt).
+
+Roboflow no acepta tildes ni paréntesis, así que tres clases se escriben distinto;
+la app las une sola con la zona correcta (ignora tildes, signos y mayúsculas):
+
+| Clase en Roboflow | Zona en la app |
+|---|---|
+| `Bloque T -FACI-` | Bloque T (FACI) |
+| `Bloque de Investigacion de Biotecnologia` | Bloque de Investigación de Biotecnología |
+| `Entrada de vehiculos` | Entrada de vehículos |
 
 | Bloques | Edificios | Deportes y accesos |
 |---|---|---|
@@ -24,8 +33,8 @@ y el proyecto de Roboflow ya trae esas clases creadas.
 | Bloque H · Bloque I · Bloque J | Posgrado | Piscina UNEMI |
 | Bloque K · Bloque M · Bloque N | SIM | Canchas |
 | Bloque O · Bloque P · Bloque R | CDIP | Monumento de las Banderas |
-| Bloque S · Bloque T (FACI) · Bloque U | Bloque de Investigación de Biotecnología | Entrada peatonal |
-| Bloque V · Bloque W · Bloque X | | Entrada de vehículos |
+| Bloque S · Bloque T -FACI- · Bloque U | Bloque de Investigacion de Biotecnologia | Entrada peatonal |
+| Bloque V · Bloque W · Bloque X | | Entrada de vehiculos |
 
 No se usan los baños, los edificios anexos, los estacionamientos ni las áreas verdes:
 se parecen entre sí y confunden al modelo.
@@ -42,7 +51,7 @@ se parecen entre sí y confunden al modelo.
 
 ## Paso 1 · Roboflow: etiquetar las fotos
 
-1. Entra a <https://app.roboflow.com> y abre el proyecto **`unemi-zonas`** (Object Detection).
+1. Entra a <https://app.roboflow.com> → workspace **UNEMI Guide AI** → proyecto **`unemi-zonas`** (Object Detection, privado).
 2. **Upload Data** → arrastra las fotos → **Save and Continue**.
 3. **Annotate** → abre cada foto:
    - Dibuja un **rectángulo** que cubra la fachada o el letrero de la zona.
