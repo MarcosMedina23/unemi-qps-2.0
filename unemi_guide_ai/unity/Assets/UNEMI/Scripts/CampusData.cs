@@ -19,7 +19,7 @@ namespace UNEMI.Campus
             new EdificioDef("CRAI", "CRAI", TipoLugar.Bloque, -8.1f, 27.0f, 42.75f, 24.75f, 0f, 10f, "#C62828"),
             new EdificioDef("CRAI_N", "", TipoLugar.Edificio, -8.1f, 42.75f, 20.25f, 18.0f, 0f, 10f, "#C62828"),
             new EdificioDef("R", "Bloque R", TipoLugar.Bloque, -95.85f, -33.75f, 24.75f, 24.75f, 5f, 9f, "#00838F"),
-            new EdificioDef("ED_M_N", "", TipoLugar.Edificio, -27.0f, -24.75f, 33.75f, 15.75f, 5f, 8f, "#AD1457"),
+            new EdificioDef("ED_M_N", "Bloque L", TipoLugar.Bloque, -27.0f, -24.75f, 33.75f, 15.75f, 5f, 8f, "#AD1457"),
             new EdificioDef("M", "Bloque M", TipoLugar.Bloque, -38.25f, -54.0f, 38.25f, 18.0f, 5f, 9f, "#4E342E"),
             new EdificioDef("N", "Bloque N", TipoLugar.Bloque, -40.5f, -87.75f, 36.0f, 15.75f, 5f, 9f, "#00BFA5"),
             new EdificioDef("S", "Bloque S", TipoLugar.Bloque, -94.5f, -76.5f, 29.25f, 20.25f, 5f, 9f, "#283593"),
