@@ -214,6 +214,22 @@ class CargarCampusTests(TestCase):
         self.assertEqual(Destino.objects.get(nombre="Bloque F").tipo, "bloque")
         self.assertEqual(Ruta.objects.count(), rutas)  # Conserva sus rutas, no crea otras
 
+    def test_renombra_el_anexo_del_bloque_m_a_bloque_l_sin_duplicar(self):
+        from zonas.models import Destino, Zona
+
+        # Así estaba guardado antes de que el anexo se llamara "Bloque L".
+        bloque_l = Zona.objects.get(nombre="Bloque L")
+        Zona.objects.filter(pk=bloque_l.pk).update(nombre="Edificio anexo (Bloque M)")
+        Destino.objects.filter(nombre="Bloque L").update(nombre="Edificio anexo (Bloque M)", tipo="edificio")
+        rutas = Ruta.objects.count()
+
+        call_command("cargar_campus", stdout=StringIO())
+
+        self.assertFalse(Zona.objects.filter(nombre="Edificio anexo (Bloque M)").exists())
+        self.assertEqual(Zona.objects.get(nombre="Bloque L").pk, bloque_l.pk)  # La misma zona
+        self.assertEqual(Destino.objects.get(nombre="Bloque L").tipo, "bloque")
+        self.assertEqual(Ruta.objects.count(), rutas)  # Conserva sus rutas, no crea otras
+
     def test_ruta_por_las_calles_hasta_el_bloque_k(self):
         ruta = Ruta.objects.get(origen__nombre="Entrada peatonal", destino__nombre="Aula K-301")
         asegurar_camino(ruta)
