@@ -3,11 +3,12 @@
 #   Bloque T -FACI-                          = zona "Bloque T (FACI)"
 #   Bloque de Investigacion de Biotecnologia = zona "Bloque de Investigación de Biotecnología"
 #   Entrada de vehiculos                     = zona "Entrada de vehículos"
+#   Area verde -Bloques R-U-                 = zona "Área verde (Bloques R-U)"
 # La app las une sola (zonas/views.py -> clave_nombre: ignora tildes y signos).
 #
-# Son los lugares que se reconocen por su FACHADA. No se incluyen baños,
-# edificios anexos, estacionamientos ni áreas verdes porque se parecen
-# entre sí y confunden al modelo.
+# No se incluyen baños, edificios anexos ni estacionamientos porque se
+# parecen entre sí y confunden al modelo. Las áreas verdes sí: usa fotos
+# donde se vea algo que las distinga (bancas, letreros o un bloque al fondo).
 Bloque B
 Bloque C
 Bloque E
@@ -37,3 +38,5 @@ Canchas
 Monumento de las Banderas
 Entrada peatonal
 Entrada de vehiculos
+Area verde -Bloques R-U-
+Area verde sur
