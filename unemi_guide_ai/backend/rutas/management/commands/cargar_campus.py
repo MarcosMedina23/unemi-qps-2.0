@@ -32,6 +32,11 @@ ARCHIVO_CAMPUS = settings.BASE_DIR / "web" / "static" / "web" / "data" / "campus
 #   "Biblioteca Central" de la demo es la biblioteca → CRAI.
 ZONAS_DEMO = {"Bloque A": "T", "Biblioteca Central": "CRAI"}
 
+# Lugares del campus que cambiaron de nombre (nombre anterior -> nombre nuevo).
+# Se renombran en la base de datos en vez de crear uno nuevo, así no quedan
+# duplicados y se conservan sus rutas e historial.
+RENOMBRADOS = {"Edificio anexo (Bloque H)": "Bloque F"}
+
 
 def a_lat_lng(x, z_norte):
     """Metros del campus (X = este, Z = norte) → (latitud, longitud)."""
@@ -47,6 +52,7 @@ class Command(BaseCommand):
             campus = json.load(archivo)
 
         pasillos = self.cargar_pasillos(campus["grafo"])
+        self.renombrar_lugares(campus)
         zonas = self.cargar_lugares(campus)
         rutas = self.crear_rutas()
 
@@ -75,6 +81,21 @@ class Command(BaseCommand):
         return len(creados)
 
     # ------------------------------------------------------------------
+    @staticmethod
+    def renombrar_lugares(campus):
+        """Aplica RENOMBRADOS a las zonas y destinos que ya estaban guardados."""
+        descripciones = {lugar["nombre"]: lugar["descripcion"] for lugar in campus["lugares"]}
+        for viejo, nuevo in RENOMBRADOS.items():
+            zona = Zona.objects.filter(nombre=viejo).first()
+            if zona and not Zona.objects.filter(nombre=nuevo).exists():
+                zona.nombre = nuevo
+                zona.descripcion = descripciones.get(nuevo, zona.descripcion)
+                zona.save(update_fields=["nombre", "descripcion"])
+            for destino in Destino.objects.filter(nombre=viejo):
+                if not Destino.objects.filter(zona=destino.zona, nombre=nuevo).exists():
+                    destino.nombre = nuevo
+                    destino.save(update_fields=["nombre"])
+
     def cargar_lugares(self, campus):
         """Crea (o actualiza) una zona y un destino por cada lugar del campus."""
         lugares_por_id = {}
