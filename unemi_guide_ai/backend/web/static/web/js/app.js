@@ -248,6 +248,7 @@
         foto_mala: { icono: "📷", titulo: "La foto no se ve bien", tipo: "error", boton: "Tomar otra foto" },
         fuera_del_campus: { icono: "🏫", titulo: "Estás fuera del campus UNEMI", tipo: "aviso", boton: "Volver a intentar" },
         sin_deteccion: { icono: "🔍", titulo: "No reconocimos este lugar", tipo: "error", boton: "Tomar otra foto" },
+        ia_no_disponible: { icono: "⏳", titulo: "Reconocimiento no disponible", tipo: "aviso", boton: "Intentar de nuevo" },
     };
 
     /**

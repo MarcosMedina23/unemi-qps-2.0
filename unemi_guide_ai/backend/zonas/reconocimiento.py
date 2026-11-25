@@ -8,6 +8,7 @@ Decide qué responder al estudiante juntando tres pistas:
 Resultado de ``decidir()`` (un dict):
 
     {"motivo": None,               "zona": Zona, "confianza": 0.91}   -> reconocida
+        (+ "aproximada": True si la confianza es media: "Estás cerca de...")
     {"motivo": "dudosa",           "opciones": [...], "mensaje": ...}  -> que elija
     {"motivo": "foto_mala",        "opciones": [...], "mensaje": ...}  -> otra foto
     {"motivo": "fuera_del_campus", "opciones": [],    "mensaje": ...}
@@ -22,6 +23,7 @@ from vision.utils import UMBRAL_AMARILLO, UMBRAL_VERDE, distancia_metros
 from .grupos_ia import es_clase_sin_zona
 from .models import Zona
 
+UMBRAL_CERCA = 0.35            # de aquí a UMBRAL_AMARILLO: "Estás cerca de..." (amarillo)
 UMBRAL_OPCION = 0.30            # confianza mínima para ofrecer una zona como opción
 MARGEN_DUDA = 0.10              # si la 2.ª zona está así de cerca de la 1.ª, se pregunta
 MAX_OPCIONES = 3
@@ -35,12 +37,16 @@ MENSAJES = {
     "dudosa_gps": "No reconocimos la foto, pero según tu ubicación estás cerca de estos "
                   "lugares. ¿Estás en alguno? Si no, acércate a un bloque y toma otra foto.",
     "foto_mala": "La foto no se ve bien y no pudimos reconocer el lugar.",
+    "foto_borrosa": "La foto se ve borrosa, vuelve a tomarla con el celular quieto.",
+    "foto_sin_luz": "No se entiende la foto, intenta de nuevo con buena luz.",
     "fuera_del_campus": "Parece que no estás dentro del campus UNEMI. Esta app solo funciona "
                         "dentro de la universidad. Cuando llegues, toma una foto de un bloque "
                         "o letrero.",
-    "sin_deteccion": "No reconocemos este lugar como parte del campus UNEMI. Si estás dentro, "
-                     "apunta a un bloque, letrero o entrada y vuelve a tomar la foto. Esta app "
-                     "solo funciona dentro de la universidad.",
+    "sin_deteccion": "Este lugar no parece estar dentro de la UNEMI. Este GPS funciona solo "
+                     "en el campus. Si estás dentro, apunta a un bloque, letrero o entrada y "
+                     "vuelve a tomar la foto.",
+    "ia_no_disponible": "El reconocimiento no está disponible en este momento, intenta de "
+                        "nuevo en unos segundos.",
 }
 
 
@@ -113,8 +119,10 @@ def decidir(resultado, calidad, ubicacion, buscar_zona):
         segunda = candidatos[1][1] if len(candidatos) > 1 else 0.0
         hay_empate = segunda >= UMBRAL_OPCION and confianza - segunda < MARGEN_DUDA
         foto_mala_y_dudosa = calidad["nivel"] == "mala" and confianza < UMBRAL_VERDE
-        if confianza >= UMBRAL_AMARILLO and not hay_empate and not foto_mala_y_dudosa:
-            return {"motivo": None, "zona": zona, "confianza": round(confianza, 2), "opciones": []}
+        if confianza >= UMBRAL_CERCA and not hay_empate and not foto_mala_y_dudosa:
+            # Confianza media (0.35 - 0.65): nunca sin respuesta, "Estás cerca de...".
+            return {"motivo": None, "zona": zona, "confianza": round(confianza, 2),
+                    "opciones": [], "aproximada": confianza < UMBRAL_AMARILLO}
 
     # 4. No está segura: se ofrecen las zonas más probables y, con GPS, las cercanas.
     opciones = [opcion(z, round(c, 2), gps) for z, c in candidatos if c >= UMBRAL_OPCION]
@@ -130,10 +138,37 @@ def decidir(resultado, calidad, ubicacion, buscar_zona):
         opciones += [opcion(z, None, gps) for z in cercanas[:MAX_OPCIONES - len(opciones)]]
 
     if calidad["nivel"] == "mala":
-        motivo, mensaje = "foto_mala", MENSAJES["foto_mala"]
+        motivo = "foto_mala"
+        borrosa = "borrosa" in calidad["problemas"]
+        mensaje = MENSAJES["foto_borrosa" if borrosa else "foto_sin_luz"]
     elif opciones:
         motivo = "dudosa"
         mensaje = MENSAJES["dudosa_gps" if solo_por_gps else "dudosa"]
     else:
         motivo, mensaje = "sin_deteccion", MENSAJES["sin_deteccion"]
     return {"motivo": motivo, "opciones": opciones, "mensaje": mensaje}
+
+
+def mas_cercana(zona):
+    """La otra zona más cercana a ``zona`` (para "...junto al Bloque Y"), o None."""
+    otras = Zona.objects.exclude(pk=zona.pk)
+    return min(
+        otras,
+        key=lambda z: distancia_metros(zona.latitud, zona.longitud, z.latitud, z.longitud),
+        default=None,
+    )
+
+
+def con_articulo(nombre, masculino="del", femenino="de la"):
+    """'Bloque C' -> 'del Bloque C'; 'Piscina UNEMI' -> 'de la Piscina UNEMI'."""
+    femeninos = {"piscina", "entrada", "area", "área", "plaza", "cancha", "biblioteca", "sala"}
+    primera = nombre.split()[0].lower() if nombre.split() else ""
+    return f"{femenino if primera in femeninos else masculino} {nombre}"
+
+
+def mensaje_cerca(zona, vecina):
+    """'Estás cerca del Bloque C, junto al Bloque B.'"""
+    texto = f"Estás cerca {con_articulo(zona.nombre)}"
+    if vecina is not None:
+        texto += f", junto {con_articulo(vecina.nombre, 'al', 'a la')}"
+    return texto + "."

@@ -6,6 +6,8 @@ __pycache__/
 # Modelos de IA (pesan mucho): se copian a mano en cada PC.
 ia_service/models/*
 !ia_service/models/.gitkeep
+*.pt
+*.onnx
 
 # Unity: carpetas que Unity genera solo.
 unity/Library/

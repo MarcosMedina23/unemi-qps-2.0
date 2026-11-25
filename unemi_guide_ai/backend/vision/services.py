@@ -5,7 +5,9 @@ Servicios de visión artificial de UNEMI Guide AI.
 Elige el modo automáticamente, en este orden:
 
     1. Microservicio ia_service  -> si IA_SERVICE_URL está en el .env
-                                    (si no responde, usa la simulación).
+                                    (si no responde, usa la simulación; con
+                                    IA_PERMITIR_SIMULACION=False responde
+                                    "no_disponible" y no inventa una zona).
     2. Modelos locales           -> si existen yolo_zone.pt, zone_classifier.pkl
                                     y tfidf.pkl en backend/ml/models/.
     3. Simulación                -> en cualquier otro caso.
@@ -63,6 +65,13 @@ def armar_resultado(zona, confianza, detecciones, modo):
         "modo": modo,
         "simulado": modo == "simulado",
     }
+
+
+def resultado_no_disponible():
+    """La IA no respondió y la simulación está apagada (IA_PERMITIR_SIMULACION=False)."""
+    resultado = armar_resultado(None, 0.0, [], "ia_service")
+    resultado["no_disponible"] = True
+    return resultado
 
 
 def libreria_instalada(nombre):
@@ -249,6 +258,9 @@ def reconocer_zona_con_ia(foto):
         respuesta.raise_for_status()  # Lanza error si el código es 4xx o 5xx.
         detecciones = respuesta.json()["detecciones"]
     except (requests.RequestException, ValueError, KeyError) as error:
+        if not settings.IA_PERMITIR_SIMULACION:
+            logger.warning("ia_service no disponible (%s).", error)
+            return resultado_no_disponible()
         logger.warning("ia_service no disponible (%s). Se usa la simulación.", error)
         resultado = reconocer_zona_simulado(foto)
         resultado["aviso"] = AVISO_IA_NO_DISPONIBLE
@@ -267,4 +279,6 @@ def reconocer_zona(foto):
         return reconocer_zona_con_ia(foto)
     if modelos_locales_disponibles():
         return reconocer_zona_modelo_local(foto)
+    if not settings.IA_PERMITIR_SIMULACION:
+        return resultado_no_disponible()
     return reconocer_zona_simulado(foto)

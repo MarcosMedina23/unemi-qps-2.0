@@ -44,7 +44,15 @@ Backend Django en `backend/` (pruebas: `cd backend && python manage.py test`).
 - `motivo` en la respuesta 400: `dudosa` (con `opciones` para elegir), `foto_mala`
   (consejos + opciones), `fuera_del_campus`, `sin_deteccion`. `detalle` conserva el
   mensaje de siempre para `sin_deteccion` y `foto_mala`.
-- Foto mala solo se rechaza si la IA no está muy segura (< 0.85).
+- Foto mala solo se rechaza si la IA no está muy segura (< 0.85). Mensaje: borrosa →
+  "vuelve a tomarla con el celular quieto"; oscura/quemada/tapada → "con buena luz".
+- Confianza media (0.35 a 0.65, sin empate): 200 amarillo "Estás cerca del Bloque X,
+  junto al Bloque Y" con `"aproximada": true` y `"junto_a"` (zona más cercana).
+- `IA_PERMITIR_SIMULACION=False` (servidor con modelo real): si la IA falla no se inventa
+  zona; 400 rojo con `motivo: "ia_no_disponible"`.
+- ia_service usa `models/best.onnx` + `data.yaml` con onnxruntime (sin PyTorch,
+  `requirements-ligero.txt`); si no hay `.onnx`, usa `best.pt`. Pruebas:
+  `cd ia_service && ..\venv\Scripts\python -m unittest test_modelo_onnx`.
 - Los umbrales de calidad se calibraron con fotos reales a 512 px; si se cambian,
   probar con `foto_jpeg("borrosa"/"oscura")` de `zonas/tests.py`.
 
@@ -58,4 +66,4 @@ Backend Django en `backend/` (pruebas: `cd backend && python manage.py test`).
 
 ## Nunca subir
 
-- `backend/.env`, `backend/db.sqlite3`, modelos `*.pt`.
+- `backend/.env`, `backend/db.sqlite3`, modelos `*.pt` y `*.onnx`.

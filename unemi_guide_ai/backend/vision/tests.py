@@ -146,6 +146,19 @@ class MicroservicioIaTests(TestCase):
         self.assertEqual(resultado["modo"], "simulado")
         self.assertEqual(resultado["aviso"], AVISO_IA_NO_DISPONIBLE)
 
+    @override_settings(IA_PERMITIR_SIMULACION=False)
+    def test_sin_simulacion_si_el_servicio_esta_apagado_no_inventa_zona(self):
+        with self.simular_post(side_effect=requests.ConnectionError("apagado")):
+            resultado = reconocer_zona(foto_jpeg())
+        self.assertTrue(resultado["no_disponible"])
+        self.assertIsNone(resultado["zona"])
+        self.assertEqual(resultado["modo"], "ia_service")
+        self.assertFalse(resultado["simulado"])
+
+    @override_settings(IA_SERVICE_URL="", IA_PERMITIR_SIMULACION=False)
+    def test_sin_simulacion_ni_modelo_no_inventa_zona(self):
+        self.assertTrue(reconocer_zona(foto_jpeg())["no_disponible"])
+
     def test_si_el_servicio_responde_con_error_usa_la_simulacion(self):
         with self.simular_post(return_value=RespuestaFalsa({}, estado=503)):
             self.assertEqual(reconocer_zona(foto_jpeg())["modo"], "simulado")

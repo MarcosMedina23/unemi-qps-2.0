@@ -25,7 +25,7 @@ from vision.utils import UMBRAL_AMARILLO, clasificar_confianza
 
 from .grupos_ia import es_clase_sin_zona, grupo_de_clase, info_grupo
 from .models import Destino, Zona
-from .reconocimiento import Ubicacion, decidir
+from .reconocimiento import MENSAJES, Ubicacion, decidir, mas_cercana, mensaje_cerca
 from .serializers import DestinoSerializer, FotoReconocimientoSerializer, ZonaSerializer
 
 MENSAJE_SIN_DATOS = "No hay datos disponibles."
@@ -117,7 +117,7 @@ class ZonaViewSet(SinDatosMixin, viewsets.ReadOnlyModelViewSet):
 
         Campos opcionales: ``latitud``, ``longitud`` y ``precision`` (GPS del celular).
         Si no se reconoce (400, semáforo rojo), ``motivo`` dice por qué
-        ("dudosa", "foto_mala", "fuera_del_campus", "sin_deteccion") y
+        ("dudosa", "foto_mala", "fuera_del_campus", "sin_deteccion", "ia_no_disponible") y
         ``opciones`` trae las zonas más probables para que el estudiante elija.
         Reglas en zonas/reconocimiento.py.
         """
@@ -133,7 +133,12 @@ class ZonaViewSet(SinDatosMixin, viewsets.ReadOnlyModelViewSet):
         inicio = time.perf_counter()
         calidad = analizar_calidad(foto)
         resultado = reconocer_zona(foto)
-        decision = decidir(resultado, calidad, ubicacion, buscar_zona)
+        if resultado.get("no_disponible"):
+            # La IA no respondió y la simulación está apagada: no se inventa una zona.
+            decision = {"motivo": "ia_no_disponible", "opciones": [],
+                        "mensaje": MENSAJES["ia_no_disponible"]}
+        else:
+            decision = decidir(resultado, calidad, ubicacion, buscar_zona)
         tiempo_ms = round((time.perf_counter() - inicio) * 1000)
 
         respuesta = {
@@ -191,6 +196,14 @@ class ZonaViewSet(SinDatosMixin, viewsets.ReadOnlyModelViewSet):
         zona = decision["zona"]
         respuesta["confianza"] = decision["confianza"]
         semaforo = clasificar_confianza(decision["confianza"], zona.nombre_completo)
+        respuesta["aproximada"] = bool(decision.get("aproximada"))
+        respuesta["junto_a"] = None
+        if respuesta["aproximada"]:
+            # Confianza media: amarillo "Estás cerca del Bloque X, junto al Bloque Y".
+            vecina = mas_cercana(zona)
+            respuesta["junto_a"] = vecina.nombre if vecina else None
+            semaforo = {"semaforo": "amarillo", "reconocida": True,
+                        "mensaje": mensaje_cerca(zona, vecina)}
         respuesta["zona"] = ZonaSerializer(zona, context={"request": request}).data
         # Lugares que abarca la clase detectada y lo que hay cerca (o None).
         clase = resultado["zona"]

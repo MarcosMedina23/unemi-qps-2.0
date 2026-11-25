@@ -256,6 +256,9 @@ VERSION_ESTATICOS = os.getenv("VERSION_ESTATICOS") or _version_estaticos()
 #   2. Modelos locales entrenados   -> YOLOv8 + TF-IDF + RandomForest (backend/ml/).
 #   3. Ninguno de los anteriores    -> modo simulado.
 IA_SERVICE_URL = os.getenv("IA_SERVICE_URL", "")
+# False = nunca inventar una zona: si la IA falla o no hay modelo, se responde
+# "no reconocida" con un aviso (lo correcto con el modelo real instalado).
+IA_PERMITIR_SIMULACION = leer_booleano("IA_PERMITIR_SIMULACION", por_defecto=True)
 
 # Archivos que generan los scripts de backend/ml/ (ver README.md, "Visión artificial real").
 CARPETA_MODELOS_ML = BASE_DIR / "ml" / "models"

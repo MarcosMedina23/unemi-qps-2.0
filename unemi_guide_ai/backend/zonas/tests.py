@@ -302,10 +302,47 @@ class RespuestaInteligenteTests(TestCase):
         self.assertEqual(self.nombres(datos), ["Bloque B", "Bloque C"])
         self.assertEqual(datos["opciones"][0]["confianza"], 0.8)
 
-    def test_confianza_baja_ofrece_la_zona_probable(self):
-        datos = self.reconocer(resultado_ia(("Bloque C", 0.45))).json()
+    def test_confianza_media_dice_cerca_de_y_junto_a(self):
+        respuesta = self.reconocer(resultado_ia(("Bloque C", 0.45)))
+        self.assertEqual(respuesta.status_code, 200)
+        datos = respuesta.json()
+        self.assertEqual(datos["semaforo"], "amarillo")
+        self.assertEqual(datos["zona"]["nombre"], "Bloque C")
+        self.assertTrue(datos["aproximada"])
+        self.assertTrue(datos["mensaje"].startswith("Estás cerca del Bloque C, junto al"))
+        self.assertIsNotNone(datos["junto_a"])
+
+    def test_confianza_alta_no_es_aproximada(self):
+        datos = self.reconocer(resultado_ia(("Bloque C", 0.9))).json()
+        self.assertFalse(datos["aproximada"])
+        self.assertIn("Estás en: Bloque C", datos["mensaje"])
+
+    def test_confianza_muy_baja_ofrece_la_zona_probable(self):
+        datos = self.reconocer(resultado_ia(("Bloque C", 0.32))).json()
         self.assertEqual(datos["motivo"], "dudosa")
         self.assertEqual(self.nombres(datos), ["Bloque C"])
+
+    def test_foto_borrosa_dice_que_la_tome_quieto(self):
+        datos = self.reconocer(resultado_ia(("Bloque B", 0.75)), foto="borrosa").json()
+        self.assertEqual(datos["mensaje"],
+                         "La foto se ve borrosa, vuelve a tomarla con el celular quieto.")
+
+    def test_foto_oscura_pide_buena_luz(self):
+        datos = self.reconocer(resultado_ia(("Bloque B", 0.5)), foto="tapada").json()
+        self.assertEqual(datos["motivo"], "foto_mala")
+        self.assertEqual(datos["mensaje"], "No se entiende la foto, intenta de nuevo con buena luz.")
+
+    def test_ia_caida_sin_simulacion_avisa_y_no_inventa_zona(self):
+        from vision.services import resultado_no_disponible
+
+        respuesta = self.reconocer(resultado_no_disponible())
+        self.assertEqual(respuesta.status_code, 400)
+        datos = respuesta.json()
+        self.assertEqual(datos["motivo"], "ia_no_disponible")
+        self.assertEqual(datos["semaforo"], "rojo")
+        self.assertIsNone(datos["zona"])
+        self.assertFalse(datos["simulado"])
+        self.assertIn("no está disponible en este momento", datos["mensaje"])
 
     def test_fuera_del_campus_por_gps(self):
         respuesta = self.reconocer(resultado_ia(("Bloque B", 0.9)), **self.EN_GUAYAQUIL)
@@ -331,7 +368,7 @@ class RespuestaInteligenteTests(TestCase):
     def test_sin_deteccion_ni_gps_explica_que_es_solo_para_el_campus(self):
         datos = self.reconocer(resultado_ia()).json()
         self.assertEqual(datos["motivo"], "sin_deteccion")
-        self.assertIn("campus UNEMI", datos["mensaje"])
+        self.assertIn("no parece estar dentro de la UNEMI", datos["mensaje"])
         # Se mantiene el detalle de siempre para los clientes anteriores.
         self.assertEqual(
             datos["detalle"], "No pudimos reconocer tu ubicación, intenta con mejor iluminación."
