@@ -31,7 +31,7 @@ la app las une sola con la zona correcta (ignora tildes, signos y mayúsculas):
 |---|---|---|
 | Bloque B · Bloque C · Bloque E · Bloque F | CRAI | Estadio Universitario UNEMI |
 | Bloque H · Bloque I · Bloque J | Posgrado | Piscina UNEMI |
-| Bloque K · Bloque M · Bloque N | SIM | Canchas |
+| Bloque K · Bloque L · Bloque M · Bloque N | SIM | Canchas |
 | Bloque O · Bloque P · Bloque R | CDIP | Monumento de las Banderas |
 | Bloque S · Bloque T -FACI- · Bloque U | Bloque de Investigacion de Biotecnologia | Entrada peatonal |
 | Bloque V · Bloque W · Bloque X | | Entrada de vehiculos |
