@@ -14,7 +14,7 @@ Para eso se entrena un modelo **YOLO26n** donde cada **clase es una zona**.
 ## La regla más importante: los nombres
 
 Cada clase corresponde a **una zona de la app**. El proyecto de Roboflow
-**`unemi-zonas`** (workspace *UNEMI Guide AI*) ya tiene las 29 clases creadas y
+**`unemi-zonas`** (workspace *UNEMI Guide AI*) ya tiene las clases creadas y
 **bloqueadas**: al etiquetar solo se elige de la lista, no se escribe. La lista está en
 [`backend/ml/roboflow/clases_zonas.txt`](../backend/ml/roboflow/clases_zonas.txt).
 
@@ -29,7 +29,7 @@ la app las une sola con la zona correcta (ignora tildes, signos y mayúsculas):
 
 | Bloques | Edificios | Deportes y accesos |
 |---|---|---|
-| Bloque B · Bloque C · Bloque E | CRAI | Estadio Universitario UNEMI |
+| Bloque B · Bloque C · Bloque E · Bloque F | CRAI | Estadio Universitario UNEMI |
 | Bloque H · Bloque I · Bloque J | Posgrado | Piscina UNEMI |
 | Bloque K · Bloque M · Bloque N | SIM | Canchas |
 | Bloque O · Bloque P · Bloque R | CDIP | Monumento de las Banderas |
