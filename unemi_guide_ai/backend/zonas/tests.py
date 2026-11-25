@@ -121,6 +121,23 @@ class ReconocimientoTests(TestCase):
             datos = self.client.post("/api/zonas/reconocer/", {"foto": foto_jpeg()}).json()
         self.assertEqual(datos["zona"]["nombre"], "Bloque T (FACI)")
 
+    def test_clases_de_roboflow_sin_tildes_ni_parentesis(self):
+        # Roboflow no acepta tildes ni paréntesis: "Bloque T (FACI)" -> "Bloque T -FACI-".
+        Zona.objects.filter(nombre="Bloque A").update(nombre="Bloque T (FACI)")
+        with mock.patch("vision.services.elegir_zona_simulada", return_value="Bloque T -FACI-"):
+            datos = self.client.post("/api/zonas/reconocer/", {"foto": foto_jpeg()}).json()
+        self.assertEqual(datos["zona"]["nombre"], "Bloque T (FACI)")
+
+    def test_clave_nombre_ignora_tildes_signos_y_mayusculas(self):
+        from .views import clave_nombre
+
+        self.assertEqual(clave_nombre("Entrada de vehiculos"), clave_nombre("Entrada de vehículos"))
+        self.assertEqual(
+            clave_nombre("Bloque de Investigacion de Biotecnologia"),
+            clave_nombre("Bloque de Investigación de Biotecnología"),
+        )
+        self.assertNotEqual(clave_nombre("Bloque B"), clave_nombre("Bloque C"))
+
     def test_sin_zona_detectada_devuelve_semaforo_rojo(self):
         sin_objetos = {
             "zona": None,
