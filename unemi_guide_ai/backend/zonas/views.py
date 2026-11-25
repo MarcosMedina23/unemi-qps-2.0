@@ -9,7 +9,9 @@ Vistas de la API de ``zonas`` (solo lectura, requieren sesión).
 
 No existen endpoints para crear, editar ni borrar: eso solo se hace en /admin/.
 """
+import re
 import time
+import unicodedata
 
 from django.http import Http404
 from rest_framework import status, viewsets
@@ -32,11 +34,29 @@ MENSAJE_NO_RECONOCIDA = "No pudimos reconocer tu ubicación, intenta con mejor i
 ALIAS_ZONAS = {"bloque a": "Bloque T (FACI)", "biblioteca central": "CRAI"}
 
 
+def clave_nombre(nombre):
+    """
+    Nombre sin tildes, signos, espacios ni mayúsculas.
+
+    Roboflow no acepta tildes ni paréntesis en las clases, así que el modelo
+    devuelve "Bloque T -FACI-" o "Entrada de vehiculos". Con esta clave ambos
+    coinciden con la zona real: "Bloque T (FACI)" -> "bloquetfaci".
+    """
+    sin_tildes = unicodedata.normalize("NFKD", nombre).encode("ascii", "ignore").decode()
+    return re.sub(r"[^a-z0-9]", "", sin_tildes.lower())
+
+
 def buscar_zona(nombre):
-    """Zona por nombre exacto; si no existe, por su equivalente en el campus real."""
+    """
+    Zona por nombre exacto; si no existe, por su equivalente en el campus real
+    y, al final, ignorando tildes y signos (nombres de clases de Roboflow).
+    """
     zona = Zona.objects.filter(nombre__iexact=nombre).first()
     if zona is None and nombre.lower() in ALIAS_ZONAS:
         zona = Zona.objects.filter(nombre__iexact=ALIAS_ZONAS[nombre.lower()]).first()
+    if zona is None:
+        clave = clave_nombre(nombre)
+        zona = next((z for z in Zona.objects.all() if clave_nombre(z.nombre) == clave), None)
     return zona
 
 
