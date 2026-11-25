@@ -28,7 +28,7 @@ EDIFICIOS = [
     ("CRAI",     "CRAI",                "Bloque",   522, 940, 95, 55, 0, 10,  "auto"),
     ("CRAI_N",   "",                    "Edificio", 522, 905, 45, 40, 0, 10,  "=CRAI"),
     ("R",        "Bloque R",            "Bloque",   327, 1075, 55, 55, 5, 9,  "auto"),
-    ("ED_M_N",   "",                    "Edificio", 480, 1055, 75, 35, 5, 8,  "auto"),
+    ("ED_M_N",   "Bloque L",            "Bloque",   480, 1055, 75, 35, 5, 8,  "auto"),   # anexo norte del Bloque M
     ("M",        "Bloque M",            "Bloque",   455, 1120, 85, 40, 5, 9,  "auto"),
     ("N",        "Bloque N",            "Bloque",   450, 1195, 80, 35, 5, 9,  "auto"),
     ("S",        "Bloque S",            "Bloque",   330, 1170, 65, 45, 5, 9,  "auto"),
